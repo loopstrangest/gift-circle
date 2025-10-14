@@ -1,0 +1,55 @@
+Gift Circle PR Roadmap
+
+Assumptions
+- Tech stack: Next.js 14 (App Router) with TypeScript, Prisma ORM, and a PostgreSQL-compatible database (SQLite in dev).
+- Realtime transport: Socket.IO over Next.js custom server; fall back to polling during early development.
+- Authentication: lightweight anonymous identities persisted with signed cookies and optional display names (no third-party auth initially).
+- Testing: Vitest for unit/integration tests, Playwright for basic end-to-end flows.
+
+Pull Request Sequence
+1. Bootstrap Next.js workspace ✅
+   - Scaffold Next.js app with TypeScript, ESLint, Prettier, Vitest, Playwright, and CI workflow. ✅
+   - Document local setup and scripts in `README`. ✅
+2. Database foundation ✅
+   - Introduce Prisma with SQLite dev database, define base schema (User, Room, RoomMembership) and migration tooling. ✅
+   - Add seed script and data access helpers for rooms and users.
+3. Anonymous identity service (next)
+   - Create API route to issue and refresh signed user tokens; persist to HTTP-only cookie.
+   - Provide lightweight client hook to expose current user identity across the app.
+4. Room code generation service ✅
+   - Implement server utility for creating short unique room codes and persisting new rooms. ✅
+   - Add unit tests covering collision handling and code format.
+5. Room creation API endpoint ✅
+   - Expose POST `/api/rooms` for hosts to create rooms, returning room metadata and user membership entry. ✅
+   - Enforce host membership on creation and audit trail fields.
+6. Join room API endpoint ✅
+   - Implement POST `/api/rooms/:code/join` to validate codes, attach user membership, and return room state snapshot. ✅
+   - Handle rejoin logic when membership already exists.
+7. Minimal lobby UI ✅
+   - Build room landing page showing room info, member roster, and basic navigation skeleton. ✅ (basic host/join forms)
+   - Add host-only banner with room code sharing controls.
+   - Provide redirect to room overview with live-updating participation summary. ✅
+8. Realtime room presence (upcoming)
+   - Wire Socket.IO server and client, emitting membership join/leave events to subscribed clients.
+   - Update lobby roster live and add optimistic presence indicators.
+9. Offer and desire schema + APIs
+   - Extend Prisma schema with Offer, Desire, and Claim models plus status enums.
+   - Provide CRUD APIs for offers/desires scoped to room membership.
+10. Offer/desire authoring UI
+    - Add room sub-pages for "My Offers" and "My Desires" with create/edit/delete flows.
+    - Ensure realtime updates broadcast to all room participants.
+11. Claim workflow backend
+    - Implement endpoints to create, accept, decline, and withdraw claims with appropriate status transitions and notifications.
+    - Add authorization checks based on offer/desire ownership and claimer identity.
+12. Claim management UI
+    - Surface claim actions within offer/desire views, including status chips and action buttons.
+    - Provide activity feed summarizing recent claim events for each user.
+13. PDF export service
+    - Generate per-user PDF summarizing owned offers/desires and commitments using a headless browser or PDF library.
+    - Add download entry point in room UI with progress feedback.
+14. Responsive layout & polish
+    - Audit mobile/desktop breakpoints, refine layout, typography, and spacing.
+    - Address accessibility, keyboard navigation, and empty state design.
+15. Hardening & QA
+    - Expand automated test coverage for critical flows; add load-test smoke for realtime layer.
+    - Conduct production readiness checklist and finalize documentation for deploy.

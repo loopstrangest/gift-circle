@@ -1,0 +1,36 @@
+Project Overview:
+
+Gift Circle is a web app where users share offers and desires with each others. They can post offers of what they want to give away and desires for what they wish to receive.
+
+A host makes a room which is a session that anyone else can join when they enter the room code. The host or anyone who has joined the session can share the room code. Sessions should be persistent but also have a way to let a user who closes the tab rejoin the room without losing their data.
+
+Users can look through everyone's offers and desires and make claims to receive others' offers and give others' their desires, and the original writer of any offer or desire can accept or decline these claims. Offers and desires could be fulfilled by zero or one or many people.
+
+Users can view anyone's profile to see all their offers and desires and their current status regarding claims and accepted and denied claims. Users should be able to edit or delete their offers and desires. Users can export the gift circle data - particularly the status of their offers and desires and offers and desires from others that they will fulfill - to a PDF.
+
+Any user has four relevant categories of information:
+Their own desires that others may claim to fulfill.
+Their own offers that others may claim to receive.
+Desires from others that the user has claimed to fulfill.
+Offers from others that the user has claimed to receive.
+
+The only way for a user to interact with the app is through a web browser at a URL, and the URL should be custom to include the room code. The app should be responsive and work well on both desktop and mobile browsers.
+
+Skills Required:
+
+Persistent data storage
+Session management for multiple users in the same session
+Live data updates pushed to all users
+Data export to PDF
+
+Key Features:
+
+Private persistent sessions with a host and users and a room code.
+Real-time updates for offers, desires, and claims.
+User profiles with editable offers and desires.
+PDF export of user data.
+Responsive web design for desktop and mobile browsers.
+
+Tech Stack:
+
+The tech stack needs to be as simple as possible while still fulfilling the requirements. Libraries may be used as needed in order to implement the required features.

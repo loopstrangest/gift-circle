@@ -1,103 +1,170 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { FormEvent, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+
+import { createRoom, joinRoom } from "@/lib/rooms-client";
+
+type ViewState =
+  | { mode: "idle" }
+  | { mode: "creating" }
+  | { mode: "joining"; code: string };
+
+export default function HomePage() {
+  const [viewState, setViewState] = useState<ViewState>({ mode: "idle" });
+  const [error, setError] = useState<string | null>(null);
+  const [isNavigating, startTransition] = useTransition();
+  const router = useRouter();
+
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const displayName = (
+      formData.get("hostDisplayName") as string | null
+    )?.trim();
+
+    if (!displayName) {
+      setError("Please enter your name.");
+      return;
+    }
+
+    // TODO: persist identity to cookie/local storage after anonymous identity service lands.
+
+    setViewState({ mode: "creating" });
+    try {
+      const response = await createRoom({ hostDisplayName: displayName });
+      setViewState({ mode: "idle" });
+      form.reset();
+      startTransition(() => {
+        router.push(
+          `/rooms/${response.room.code}?membershipId=${response.membership.id}`
+        );
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong creating the room.");
+      setViewState({ mode: "idle" });
+    }
+  }
+
+  async function handleJoin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const displayName = (formData.get("displayName") as string | null)?.trim();
+    const code = (formData.get("roomCode") as string | null)?.trim();
+
+    if (!displayName || !code) {
+      setError("Enter your name and a room code.");
+      return;
+    }
+
+    // TODO: move validation and identity handling to shared identity service when implemented.
+
+    setViewState({ mode: "joining", code });
+
+    try {
+      const response = await joinRoom({ code, displayName });
+      setViewState({ mode: "idle" });
+      form.reset();
+      startTransition(() => {
+        router.push(
+          `/rooms/${response.room.code}?membershipId=${response.membership.id}`
+        );
+      });
+    } catch (err) {
+      console.error(err);
+      setError(
+        "Unable to join that room. Double check the code and try again."
+      );
+      setViewState({ mode: "idle" });
+    }
+  }
+
+  const isBusy =
+    viewState.mode === "creating" ||
+    viewState.mode === "joining" ||
+    isNavigating;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-10 px-6 py-12">
+      <header className="space-y-2 text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
+          Gift Circle
+        </h1>
+        <p className="text-base text-slate-600">
+          Create a room, invite others with a unique code, and track offers and
+          desires together.
+        </p>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      <section className="grid gap-6 md:grid-cols-2">
+        <form
+          onSubmit={handleCreate}
+          className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <h2 className="text-lg font-semibold text-slate-900">Host a room</h2>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-slate-700">Your name</span>
+            <input
+              name="hostDisplayName"
+              type="text"
+              autoComplete="name"
+              className="rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </label>
+          <button
+            type="submit"
+            disabled={viewState.mode === "creating" || isBusy}
+            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            {viewState.mode === "creating" || isBusy
+              ? "Creating…"
+              : "Create room"}
+          </button>
+        </form>
+
+        <form
+          onSubmit={handleJoin}
+          className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <h2 className="text-lg font-semibold text-slate-900">Join a room</h2>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-slate-700">Your name</span>
+            <input
+              name="displayName"
+              type="text"
+              autoComplete="name"
+              className="rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm">
+            <span className="font-medium text-slate-700">Room code</span>
+            <input
+              name="roomCode"
+              type="text"
+              maxLength={6}
+              className="rounded-md border border-slate-300 px-3 py-2 text-base uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={viewState.mode === "joining" || isBusy}
+            className="inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+          >
+            {viewState.mode === "joining" || isBusy ? "Joining…" : "Join room"}
+          </button>
+        </form>
+      </section>
+
+      {error ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </p>
+      ) : null}
+    </main>
   );
 }
