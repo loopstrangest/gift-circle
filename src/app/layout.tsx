@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
+import { IdentityProvider } from "@/components/identity-provider";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -41,7 +43,7 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-        {children}
+        <IdentityProvider>{children}</IdentityProvider>
       </body>
     </html>
   );

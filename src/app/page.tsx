@@ -4,6 +4,7 @@ import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { createRoom, joinRoom } from "@/lib/rooms-client";
+import { useIdentity } from "@/lib/identity-client";
 
 type ViewState =
   | { mode: "idle" }
@@ -11,6 +12,7 @@ type ViewState =
   | { mode: "joining"; code: string };
 
 export default function HomePage() {
+  const { identity, setDisplayName, refresh } = useIdentity();
   const [viewState, setViewState] = useState<ViewState>({ mode: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [isNavigating, startTransition] = useTransition();
@@ -30,11 +32,10 @@ export default function HomePage() {
       return;
     }
 
-    // TODO: persist identity to cookie/local storage after anonymous identity service lands.
-
     setViewState({ mode: "creating" });
     try {
       const response = await createRoom({ hostDisplayName: displayName });
+      await refresh();
       setViewState({ mode: "idle" });
       form.reset();
       startTransition(() => {
@@ -62,11 +63,16 @@ export default function HomePage() {
       return;
     }
 
-    // TODO: move validation and identity handling to shared identity service when implemented.
-
     setViewState({ mode: "joining", code });
 
     try {
+      const currentIdentity = identity ?? (await refresh());
+      const shouldReset = currentIdentity
+        ? currentIdentity.displayName !== null &&
+          currentIdentity.displayName !== displayName
+        : true;
+
+      await setDisplayName(displayName, { reset: shouldReset });
       const response = await joinRoom({ code, displayName });
       setViewState({ mode: "idle" });
       form.reset();

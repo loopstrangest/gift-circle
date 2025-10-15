@@ -13,9 +13,9 @@ Pull Request Sequence
 2. Database foundation ✅
    - Introduce Prisma with SQLite dev database, define base schema (User, Room, RoomMembership) and migration tooling. ✅
    - Add seed script and data access helpers for rooms and users.
-3. Anonymous identity service (next)
-   - Create API route to issue and refresh signed user tokens; persist to HTTP-only cookie.
-   - Provide lightweight client hook to expose current user identity across the app.
+3. Anonymous identity service ✅
+   - Create API route to issue and refresh signed user tokens; persist to HTTP-only cookie. ✅
+   - Provide lightweight client hook to expose current user identity across the app. ✅
 4. Room code generation service ✅
    - Implement server utility for creating short unique room codes and persisting new rooms. ✅
    - Add unit tests covering collision handling and code format.
