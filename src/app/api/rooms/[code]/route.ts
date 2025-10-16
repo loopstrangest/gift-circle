@@ -43,9 +43,7 @@ export async function GET(
       }))
       .sort((a, b) => {
         if (a.role === b.role) {
-          return (
-            new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime()
-          );
+          return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
         }
         return a.role === "HOST" ? -1 : 1;
       }),

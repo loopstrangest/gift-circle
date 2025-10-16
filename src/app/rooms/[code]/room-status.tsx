@@ -4,11 +4,7 @@ import useSWR from "swr";
 import { useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 
-import {
-  fetchRoomSnapshot,
-  RoomSnapshot,
-  RoomMember,
-} from "@/lib/rooms-client";
+import { fetchRoomSnapshot, RoomSnapshot, RoomMember } from "@/lib/rooms-client";
 
 const REFRESH_INTERVAL_MS = 3_000;
 
@@ -89,9 +85,7 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
       <header className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-3xl font-semibold text-slate-900">
-          Room {data.code}
-        </h1>
+        <h1 className="text-3xl font-semibold text-slate-900">Room {data.code}</h1>
         <p className="mt-2 text-sm text-slate-600">
           Hosted by{" "}
           <span className="font-medium text-slate-900">

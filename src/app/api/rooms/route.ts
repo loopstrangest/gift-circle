@@ -21,9 +21,7 @@ export async function POST(request: NextRequest) {
     request.cookies.get(IDENTITY_COOKIE_NAME)?.value
   );
 
-  const parseResult = BodySchema.safeParse(
-    await request.json().catch(() => ({}))
-  );
+  const parseResult = BodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parseResult.success) {
     const response = NextResponse.json(
       { error: "Invalid request body", issues: parseResult.error.issues },

@@ -57,10 +57,7 @@ export async function POST(request: Request) {
   const displayName = body?.displayName?.trim() || null;
 
   if (displayName !== identity.user.displayName) {
-    const updated = await updateIdentityDisplayName(
-      identity.user.id,
-      displayName
-    );
+    const updated = await updateIdentityDisplayName(identity.user.id, displayName);
     identity.user = updated;
     identity.shouldSetCookie = true;
   }

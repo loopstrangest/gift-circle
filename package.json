@@ -6,11 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "prisma:push": "prisma db push",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "playwright:install": "playwright install --with-deps"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
@@ -26,6 +31,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@playwright/test": "^1.51.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -36,8 +42,10 @@
     "@vitest/ui": "^3.2.4",
     "eslint": "^9",
     "eslint-config-next": "15.5.5",
+    "prettier": "^3.3.3",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "tsx": "^4.19.1",
     "vitest": "^3.2.4"
   },
   "packageManager": "npm@10.9.0"

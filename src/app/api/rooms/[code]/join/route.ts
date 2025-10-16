@@ -29,9 +29,7 @@ export async function POST(
     request.cookies.get(IDENTITY_COOKIE_NAME)?.value
   );
 
-  const parseResult = BodySchema.safeParse(
-    await request.json().catch(() => ({}))
-  );
+  const parseResult = BodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parseResult.success) {
     const response = NextResponse.json(
       { error: "Invalid request body", issues: parseResult.error.issues },
@@ -120,15 +118,10 @@ export async function POST(
       return false;
     }
     const membershipName = membership.nickname ?? membership.user.displayName;
-    return (
-      membershipName?.trim().toLowerCase() === trimmedDisplayName.toLowerCase()
-    );
+    return membershipName?.trim().toLowerCase() === trimmedDisplayName.toLowerCase();
   });
 
-  if (
-    matchingHostMembership &&
-    matchingHostMembership.userId !== identity.user.id
-  ) {
+  if (matchingHostMembership && matchingHostMembership.userId !== identity.user.id) {
     const result = await prisma.$transaction(async (tx) => {
       const updatedMembership = await tx.roomMembership.update({
         where: { id: matchingHostMembership.id },

@@ -23,9 +23,7 @@ export default function HomePage() {
     setError(null);
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const displayName = (
-      formData.get("hostDisplayName") as string | null
-    )?.trim();
+    const displayName = (formData.get("hostDisplayName") as string | null)?.trim();
 
     if (!displayName) {
       setError("Please enter your name.");
@@ -83,17 +81,13 @@ export default function HomePage() {
       });
     } catch (err) {
       console.error(err);
-      setError(
-        "Unable to join that room. Double check the code and try again."
-      );
+      setError("Unable to join that room. Double check the code and try again.");
       setViewState({ mode: "idle" });
     }
   }
 
   const isBusy =
-    viewState.mode === "creating" ||
-    viewState.mode === "joining" ||
-    isNavigating;
+    viewState.mode === "creating" || viewState.mode === "joining" || isNavigating;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-10 px-6 py-12">
@@ -102,8 +96,8 @@ export default function HomePage() {
           Gift Circle
         </h1>
         <p className="text-base text-slate-600">
-          Create a room, invite others with a unique code, and track offers and
-          desires together.
+          Create a room, invite others with a unique code, and track offers and desires
+          together.
         </p>
       </header>
 
@@ -127,9 +121,7 @@ export default function HomePage() {
             disabled={viewState.mode === "creating" || isBusy}
             className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
           >
-            {viewState.mode === "creating" || isBusy
-              ? "Creating…"
-              : "Create room"}
+            {viewState.mode === "creating" || isBusy ? "Creating…" : "Create room"}
           </button>
         </form>
 

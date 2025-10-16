@@ -21,11 +21,7 @@ type RoomResponse = {
   };
 };
 
-export async function createRoom({
-  hostDisplayName,
-}: {
-  hostDisplayName: string;
-}) {
+export async function createRoom({ hostDisplayName }: { hostDisplayName: string }) {
   const response = await fetch("/api/rooms", {
     method: "POST",
     headers: {

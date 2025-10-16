@@ -114,17 +114,11 @@ export function createIdentityPayload(userId: string, now = Date.now()) {
   } satisfies IdentityTokenPayload;
 }
 
-export function shouldRefreshIdentity(
-  payload: IdentityTokenPayload,
-  now = Date.now()
-) {
+export function shouldRefreshIdentity(payload: IdentityTokenPayload, now = Date.now()) {
   return payload.expiresAt - now < IDENTITY_REFRESH_THRESHOLD_MS;
 }
 
-export function refreshIdentityToken(
-  identity: ResolvedIdentity,
-  now = Date.now()
-) {
+export function refreshIdentityToken(identity: ResolvedIdentity, now = Date.now()) {
   const refreshedPayload = createIdentityPayload(identity.user.id, now);
   identity.payload = refreshedPayload;
   identity.token = encodeIdentityToken(refreshedPayload);
