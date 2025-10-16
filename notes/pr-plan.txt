@@ -29,9 +29,9 @@ Pull Request Sequence
    - Build room landing page showing room info, member roster, and basic navigation skeleton. ✅ (basic host/join forms)
    - Add host-only banner with room code sharing controls.
    - Provide redirect to room overview with live-updating participation summary. ✅
-8. Realtime room presence (upcoming)
-   - Wire Socket.IO server and client, emitting membership join/leave events to subscribed clients.
-   - Update lobby roster live and add optimistic presence indicators.
+8. Realtime room presence (adjusted)
+   - Wire Socket.IO server and client to broadcast roster updates and basic presence status.
+   - Keep roster UI simple (copy code button, live participant list); host kick and duplicate-session enforcement deferred.
 9. Offer and desire schema + APIs
    - Extend Prisma schema with Offer, Desire, and Claim models plus status enums.
    - Provide CRUD APIs for offers/desires scoped to room membership.

@@ -43,7 +43,10 @@ export default function HomePage() {
       });
     } catch (err) {
       console.error(err);
-      setError("Something went wrong creating the room.");
+      const message =
+        (err as Error & { message?: string }).message ??
+        "Something went wrong creating the room.";
+      setError(message);
       setViewState({ mode: "idle" });
     }
   }
@@ -81,7 +84,10 @@ export default function HomePage() {
       });
     } catch (err) {
       console.error(err);
-      setError("Unable to join that room. Double check the code and try again.");
+      const message =
+        (err as Error).message ??
+        "Unable to join that room. Double check the code and try again.";
+      setError(message);
       setViewState({ mode: "idle" });
     }
   }
@@ -90,8 +96,8 @@ export default function HomePage() {
     viewState.mode === "creating" || viewState.mode === "joining" || isNavigating;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-10 px-6 py-12">
-      <header className="space-y-2 text-center">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-12 px-6 py-16">
+      <header className="space-y-3 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">
           Gift Circle
         </h1>
@@ -102,10 +108,7 @@ export default function HomePage() {
       </header>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <form
-          onSubmit={handleCreate}
-          className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
-        >
+        <form onSubmit={handleCreate} className="card flex flex-col gap-4 p-6">
           <h2 className="text-lg font-semibold text-slate-900">Host a room</h2>
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-slate-700">Your name</span>
@@ -119,16 +122,13 @@ export default function HomePage() {
           <button
             type="submit"
             disabled={viewState.mode === "creating" || isBusy}
-            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300"
+            className="btn-primary"
           >
             {viewState.mode === "creating" || isBusy ? "Creating…" : "Create room"}
           </button>
         </form>
 
-        <form
-          onSubmit={handleJoin}
-          className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
-        >
+        <form onSubmit={handleJoin} className="card flex flex-col gap-4 p-6">
           <h2 className="text-lg font-semibold text-slate-900">Join a room</h2>
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-slate-700">Your name</span>
@@ -151,7 +151,7 @@ export default function HomePage() {
           <button
             type="submit"
             disabled={viewState.mode === "joining" || isBusy}
-            className="inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+            className="btn-secondary"
           >
             {viewState.mode === "joining" || isBusy ? "Joining…" : "Join room"}
           </button>

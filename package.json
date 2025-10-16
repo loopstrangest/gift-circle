@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "tsx server/index.ts dev",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production tsx server/index.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -24,13 +24,13 @@
     "prisma": "^6.17.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "socket.io-client": "^4.7.5",
     "swr": "^2.3.0",
     "uuid": "^11.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@playwright/test": "^1.51.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -40,12 +40,14 @@
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",
     "@vitest/ui": "^3.2.4",
+    "autoprefixer": "^10.4.19",
     "eslint": "^9",
     "eslint-config-next": "15.5.5",
     "prettier": "^3.3.3",
-    "tailwindcss": "^4",
-    "typescript": "^5",
+    "socket.io": "^4.7.5",
+    "tailwindcss": "^3.4.13",
     "tsx": "^4.19.1",
+    "typescript": "^5",
     "vitest": "^3.2.4"
   },
   "packageManager": "npm@10.9.0"

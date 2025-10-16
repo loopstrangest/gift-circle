@@ -1,4 +1,4 @@
-import { RoomSnapshot } from "./room-types";
+import type { RoomSnapshot, RoomMember, MembershipRole } from "./room-types";
 
 type RoomResponse = {
   room: {
@@ -21,6 +21,25 @@ type RoomResponse = {
   };
 };
 
+function buildApiError(response: Response, fallback: string) {
+  return response
+    .json()
+    .catch(() => ({}))
+    .then((payload) => {
+      const err = new Error(
+        typeof (payload as { message?: string }).message === "string"
+          ? (payload as { message: string }).message
+          : `${fallback}: ${response.status}`
+      );
+      const result = err as Error & { code?: string; status?: number };
+      if (typeof (payload as { error?: string }).error === "string") {
+        result.code = (payload as { error: string }).error;
+      }
+      result.status = response.status;
+      return err;
+    });
+}
+
 export async function createRoom({ hostDisplayName }: { hostDisplayName: string }) {
   const response = await fetch("/api/rooms", {
     method: "POST",
@@ -31,7 +50,7 @@ export async function createRoom({ hostDisplayName }: { hostDisplayName: string 
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create room: ${response.status}`);
+    throw await buildApiError(response, "Failed to create room");
   }
 
   return (await response.json()) as RoomResponse & {
@@ -55,7 +74,7 @@ export async function joinRoom({
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to join room: ${response.status}`);
+    throw await buildApiError(response, "Failed to join room");
   }
 
   return (await response.json()) as RoomResponse & {
@@ -71,4 +90,14 @@ export async function fetchRoomSnapshot(code: string): Promise<RoomSnapshot> {
   return (await response.json()) as RoomSnapshot;
 }
 
-export type { RoomSnapshot, RoomMember } from "./room-types";
+export type PresenceEvent = {
+  roomId: string;
+  membershipId: string;
+  userId: string;
+  displayName: string | null;
+  nickname: string | null;
+  role: MembershipRole;
+  connectedAt: number;
+};
+
+export type { RoomSnapshot, RoomMember };
