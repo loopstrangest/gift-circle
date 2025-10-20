@@ -10,7 +10,7 @@ import {
   shouldRefreshIdentity,
   updateIdentityDisplayName,
 } from "@/lib/identity";
-import { emitPresenceUpdate } from "@/server/realtime";
+import { emitPresenceUpdate, listActiveMemberships } from "@/server/realtime";
 
 const BodySchema = z.object({
   displayName: z.string().min(1).max(64),
@@ -66,7 +66,23 @@ export async function POST(
   );
 
   if (existingMembership) {
-    await emitPresenceUpdate(room.id);
+    const activeMemberships = listActiveMemberships(room.id);
+    const isActive = activeMemberships.has(existingMembership.id);
+
+    if (!isActive) {
+      await prisma.roomMembership.update({
+        where: { id: existingMembership.id },
+        data: {
+          updatedAt: new Date(),
+        },
+      });
+
+      emitPresenceUpdate({
+        roomId: room.id,
+        membershipId: existingMembership.id,
+        reason: "updated",
+      });
+    }
 
     const response = NextResponse.json(
       {
@@ -141,7 +157,11 @@ export async function POST(
       return { membership: updatedMembership };
     });
 
-    await emitPresenceUpdate(room.id);
+    await emitPresenceUpdate({
+      roomId: room.id,
+      membershipId: result.membership.id,
+      reason: "reassigned",
+    });
 
     const response = NextResponse.json(
       {
@@ -184,7 +204,11 @@ export async function POST(
     return { membership };
   });
 
-  await emitPresenceUpdate(room.id);
+  await emitPresenceUpdate({
+    roomId: room.id,
+    membershipId: result.membership.id,
+    reason: "created",
+  });
 
   const response = NextResponse.json(
     {

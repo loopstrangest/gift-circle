@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import useSWR from "swr";
+import { useEffect, useState, useCallback, useRef } from "react";
+import useSWR, { mutate } from "swr";
 import { useSearchParams } from "next/navigation";
 
 import { fetchRoomSnapshot, RoomSnapshot, RoomMember } from "@/lib/rooms-client";
+import {
+  connectToRoom,
+  disconnectSocket,
+  onRoomSocketConnect,
+} from "@/lib/socket-client";
+import type { PresenceMessage } from "@/lib/presence-types";
 
 function formatJoinedAt(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -28,12 +34,14 @@ function MemberList({
         const nickname = member.nickname?.trim();
         const fallBackName = member.displayName?.trim();
         const primaryName = nickname || fallBackName || (isHost ? "Host" : "Anonymous");
+        const rowClasses = [
+          "flex items-center justify-between gap-4 rounded-lg border border-slate-200 px-4 py-3 shadow-sm",
+          member.isActive ? "bg-white" : "bg-slate-50",
+          member.isActive ? "opacity-100" : "opacity-70",
+        ].join(" ");
 
         return (
-          <li
-            key={member.membershipId}
-            className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
-          >
+          <li key={member.membershipId} className={rowClasses}>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-medium text-slate-900">
@@ -67,6 +75,11 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
   const [members, setMembers] = useState<RoomSnapshot["members"]>(snapshot.members);
   const [lastUpdated, setLastUpdated] = useState(snapshot.updatedAt);
   const [isCopying, setIsCopying] = useState(false);
+  const membershipIdRef = useRef<string | null>(membershipId);
+
+  useEffect(() => {
+    membershipIdRef.current = membershipId;
+  }, [membershipId]);
 
   const fetcher = useCallback(async () => {
     return fetchRoomSnapshot(snapshot.code);
@@ -83,6 +96,58 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
     setMembers(roomData.members);
     setLastUpdated(roomData.updatedAt);
   }, [roomData.members, roomData.updatedAt]);
+
+  useEffect(() => {
+    const socket = connectToRoom({
+      roomId: snapshot.id,
+      membershipId: membershipId ?? undefined,
+    });
+
+    const handlePresence = (message: PresenceMessage) => {
+      if (message.roomId !== snapshot.id) {
+        return;
+      }
+
+      switch (message.type) {
+        case "refresh":
+        case "member:connected":
+        case "member:disconnected": {
+          mutate(["room", snapshot.code]);
+          break;
+        }
+        default:
+          break;
+      }
+    };
+
+    const handleConnect = () => {
+      mutate(["room", snapshot.code]);
+    };
+
+    const handleDisconnect = () => {
+      mutate(["room", snapshot.code]);
+    };
+
+    onRoomSocketConnect(handleConnect);
+    socket.on("presence", handlePresence);
+    socket.on("disconnect", handleDisconnect);
+
+    return () => {
+      socket.off("presence", handlePresence);
+      socket.off("disconnect", handleDisconnect);
+      disconnectSocket();
+    };
+  }, [snapshot.id, snapshot.code, membershipId]);
+
+  const visibleMembers = members.slice().sort((a, b) => {
+    if (a.role === b.role) {
+      if (a.isActive === b.isActive) {
+        return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
+      }
+      return a.isActive ? -1 : 1;
+    }
+    return a.role === "HOST" ? -1 : 1;
+  });
 
   const handleCopyCode = async () => {
     try {
@@ -126,7 +191,7 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
 
       <section className="card p-6">
         <h2 className="text-xl font-semibold text-slate-900">Participants</h2>
-        <MemberList members={members} currentMembershipId={membershipId} />
+        <MemberList members={visibleMembers} currentMembershipId={membershipId} />
       </section>
     </main>
   );

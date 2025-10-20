@@ -11,6 +11,7 @@ import {
   shouldRefreshIdentity,
   updateIdentityDisplayName,
 } from "@/lib/identity";
+import { emitPresenceUpdate } from "@/server/realtime";
 
 const BodySchema = z.object({
   hostDisplayName: z.string().min(1).max(64).optional(),
@@ -71,6 +72,12 @@ export async function POST(request: NextRequest) {
         });
 
         return { room, membership };
+      });
+
+      emitPresenceUpdate({
+        roomId: result.room.id,
+        membershipId: result.membership.id,
+        reason: "created",
       });
 
       const response = NextResponse.json(

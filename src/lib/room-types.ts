@@ -7,6 +7,7 @@ export type RoomMember = {
   nickname: string | null;
   role: MembershipRole;
   joinedAt: string;
+  isActive: boolean;
 };
 
 export type RoomSnapshot = {

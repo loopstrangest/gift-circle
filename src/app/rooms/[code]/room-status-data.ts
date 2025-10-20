@@ -1,11 +1,15 @@
 import type { Room, RoomMembership, User } from "@prisma/client";
 
 import { RoomSnapshot } from "@/lib/room-types";
+import { listActiveMemberships } from "@/server/realtime";
 
 function sortMembers(members: RoomSnapshot["members"]) {
   return [...members].sort((a, b) => {
     if (a.role === b.role) {
-      return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
+      if (a.isActive === b.isActive) {
+        return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
+      }
+      return a.isActive ? -1 : 1;
     }
     return a.role === "HOST" ? -1 : 1;
   });
@@ -17,17 +21,20 @@ export function buildSnapshot(
     memberships: (RoomMembership & { user: User })[];
   }
 ): RoomSnapshot {
+  const activeMemberships = listActiveMemberships(room.id);
+
   const members = sortMembers(
-    room.memberships.map((membership) => ({
-      membershipId: membership.id,
-      userId: membership.userId,
-      displayName: membership.user.displayName,
-      nickname: membership.nickname,
-      role: membership.role,
-      joinedAt: membership.createdAt.toISOString(),
-      isActive: false,
-      connectedAt: null,
-    }))
+    room.memberships
+      .filter((membership) => activeMemberships.has(membership.id))
+      .map((membership) => ({
+        membershipId: membership.id,
+        userId: membership.userId,
+        displayName: membership.user.displayName,
+        nickname: membership.nickname,
+        role: membership.role,
+        joinedAt: membership.createdAt.toISOString(),
+        isActive: true,
+      }))
   );
 
   return {

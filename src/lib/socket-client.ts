@@ -2,13 +2,19 @@ import { io, Socket } from "socket.io-client";
 
 export type ConnectionArgs = {
   roomId: string;
-  membershipId: string;
+  membershipId?: string;
 };
 
 let socketInstance: Socket | null = null;
 
 export function connectToRoom(args: ConnectionArgs) {
   if (socketInstance) {
+    const sameRoom = socketInstance.auth?.roomId === args.roomId;
+    const sameMembership = socketInstance.auth?.membershipId === args.membershipId;
+    if (sameRoom && sameMembership) {
+      return socketInstance;
+    }
+
     socketInstance.disconnect();
     socketInstance = null;
   }
@@ -28,6 +34,13 @@ export function connectToRoom(args: ConnectionArgs) {
   });
 
   return socketInstance;
+}
+
+export function onRoomSocketConnect(callback: () => void) {
+  if (!socketInstance) {
+    return;
+  }
+  socketInstance.once("connect", callback);
 }
 
 export function getSocket() {
