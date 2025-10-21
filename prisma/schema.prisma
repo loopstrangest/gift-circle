@@ -28,6 +28,9 @@ model Room {
   hostId      String
   host        User             @relation("RoomHost", fields: [hostId], references: [id])
   memberships RoomMembership[]
+  offers      Offer[]
+  desires     Desire[]
+  claims      Claim[]
 }
 
 model RoomMembership {
@@ -40,6 +43,9 @@ model RoomMembership {
   nickname  String?
   room      Room           @relation(fields: [roomId], references: [id])
   user      User           @relation(fields: [userId], references: [id])
+  offers    Offer[]        @relation("OfferAuthor")
+  desires   Desire[]       @relation("DesireAuthor")
+  claims    Claim[]        @relation("ClaimClaimer")
 
   @@unique([roomId, userId])
   @@index([userId])
@@ -49,4 +55,78 @@ model RoomMembership {
 enum MembershipRole {
   HOST
   PARTICIPANT
+}
+
+model Offer {
+  id                 String        @id @default(cuid())
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  roomId             String
+  authorMembershipId String
+  title              String
+  details            String?
+  status             OfferStatus   @default(OPEN)
+  room               Room          @relation(fields: [roomId], references: [id])
+  author             RoomMembership @relation("OfferAuthor", fields: [authorMembershipId], references: [id])
+  claims             Claim[]       @relation("OfferClaims")
+
+  @@index([roomId])
+  @@index([authorMembershipId])
+}
+
+model Desire {
+  id                 String         @id @default(cuid())
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  roomId             String
+  authorMembershipId String
+  title              String
+  details            String?
+  status             DesireStatus   @default(OPEN)
+  room               Room           @relation(fields: [roomId], references: [id])
+  author             RoomMembership @relation("DesireAuthor", fields: [authorMembershipId], references: [id])
+  claims             Claim[]        @relation("DesireClaims")
+
+  @@index([roomId])
+  @@index([authorMembershipId])
+}
+
+model Claim {
+  id                  String        @id @default(cuid())
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  roomId              String
+  claimerMembershipId String
+  offerId             String?
+  desireId            String?
+  status              ClaimStatus   @default(PENDING)
+  note                String?
+  room                Room          @relation(fields: [roomId], references: [id])
+  claimer             RoomMembership @relation("ClaimClaimer", fields: [claimerMembershipId], references: [id])
+  offer               Offer?        @relation("OfferClaims", fields: [offerId], references: [id], onDelete: Cascade)
+  desire              Desire?       @relation("DesireClaims", fields: [desireId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([claimerMembershipId])
+  @@index([offerId])
+  @@index([desireId])
+}
+
+enum OfferStatus {
+  OPEN
+  FULFILLED
+  WITHDRAWN
+}
+
+enum DesireStatus {
+  OPEN
+  FULFILLED
+  WITHDRAWN
+}
+
+enum ClaimStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
 }

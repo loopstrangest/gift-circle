@@ -56,6 +56,8 @@ function buildRoom(overrides: Partial<RoomInput> = {}): RoomInput {
         },
       },
     ],
+    offers: [],
+    desires: [],
     ...overrides,
   } satisfies RoomInput;
 }
@@ -65,7 +67,7 @@ describe("buildSnapshot", () => {
     mockListActiveMemberships.mockReset();
   });
 
-  it("only includes memberships that are currently active", () => {
+  it("marks non-active memberships but keeps them in the list", () => {
     const room = buildRoom();
 
     mockListActiveMemberships.mockReturnValue(
@@ -76,10 +78,16 @@ describe("buildSnapshot", () => {
 
     const snapshot = buildSnapshot(room);
 
-    expect(snapshot.members).toHaveLength(1);
+    expect(snapshot.members).toHaveLength(2);
     expect(snapshot.members[0]).toMatchObject({
       membershipId: "membership-host",
       role: "HOST",
+      isActive: true,
+    });
+    expect(snapshot.members[1]).toMatchObject({
+      membershipId: "membership-guest",
+      role: "PARTICIPANT",
+      isActive: false,
     });
   });
 
@@ -96,7 +104,68 @@ describe("buildSnapshot", () => {
     const snapshot = buildSnapshot(room);
 
     expect(snapshot.members).toHaveLength(2);
-    expect(snapshot.members[0].membershipId).toBe("membership-host");
-    expect(snapshot.members[1].membershipId).toBe("membership-guest");
+    expect(snapshot.members[0]).toMatchObject({
+      membershipId: "membership-host",
+      isActive: true,
+    });
+    expect(snapshot.members[1]).toMatchObject({
+      membershipId: "membership-guest",
+      isActive: true,
+    });
+  });
+
+  it("maps offers and desires into summaries", () => {
+    const room = buildRoom({
+      offers: [
+        {
+          id: "offer-2",
+          roomId: "room-1",
+          authorMembershipId: "membership-guest",
+          title: "Second offer",
+          details: null,
+          status: "OPEN",
+          createdAt: new Date("2025-01-01T00:10:00.000Z"),
+          updatedAt: new Date("2025-01-01T00:15:00.000Z"),
+        },
+        {
+          id: "offer-1",
+          roomId: "room-1",
+          authorMembershipId: "membership-host",
+          title: "First offer",
+          details: "Details",
+          status: "FULFILLED",
+          createdAt: new Date("2025-01-01T00:03:00.000Z"),
+          updatedAt: new Date("2025-01-01T00:04:00.000Z"),
+        },
+      ],
+      desires: [
+        {
+          id: "desire-1",
+          roomId: "room-1",
+          authorMembershipId: "membership-host",
+          title: "Need help",
+          details: null,
+          status: "OPEN",
+          createdAt: new Date("2025-01-01T00:06:00.000Z"),
+          updatedAt: new Date("2025-01-01T00:07:00.000Z"),
+        },
+      ],
+    });
+
+    mockListActiveMemberships.mockReturnValue(
+      new Map([
+        ["membership-host", { membershipId: "membership-host", connectedAt: 1 }],
+        ["membership-guest", { membershipId: "membership-guest", connectedAt: 2 }],
+      ])
+    );
+
+    const snapshot = buildSnapshot(room);
+
+    expect(snapshot.offers).toHaveLength(2);
+    expect(snapshot.offers[0]).toMatchObject({ id: "offer-1", title: "First offer" });
+    expect(snapshot.offers[1]).toMatchObject({ id: "offer-2", title: "Second offer" });
+
+    expect(snapshot.desires).toHaveLength(1);
+    expect(snapshot.desires[0]).toMatchObject({ id: "desire-1", title: "Need help" });
   });
 });

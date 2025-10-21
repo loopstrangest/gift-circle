@@ -31,6 +31,8 @@ export default async function RoomPage({
       memberships: {
         include: { user: true },
       },
+      offers: true,
+      desires: true,
     },
   });
 

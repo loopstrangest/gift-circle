@@ -1,4 +1,10 @@
-import type { RoomSnapshot, RoomMember, MembershipRole } from "./room-types";
+import type {
+  RoomSnapshot,
+  RoomMember,
+  MembershipRole,
+  OfferSummary,
+  DesireSummary,
+} from "./room-types";
 
 type RoomResponse = {
   room: {
@@ -100,4 +106,4 @@ export type PresenceEvent = {
   connectedAt: number;
 };
 
-export type { RoomSnapshot, RoomMember };
+export type { RoomSnapshot, RoomMember, OfferSummary, DesireSummary };

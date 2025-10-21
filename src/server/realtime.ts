@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import type { Server as HTTPServer } from "node:http";
 
 import type { PresenceMessage, PresenceRefreshReason } from "@/lib/presence-types";
+import type { RoomEvent } from "@/server/room-events";
 
 const ROOM_CHANNEL_PREFIX = "room:";
 
@@ -191,6 +192,15 @@ export function emitPresenceUpdate({
     reason,
     timestamp: Date.now(),
   });
+}
+
+export function emitRoomEvent(roomId: string, event: RoomEvent) {
+  const server = ioInstance;
+  if (!server) {
+    return;
+  }
+
+  server.to(buildRoomChannel(roomId)).emit("room:event", event);
 }
 
 export function setRealtimeServerForTests(instance: Server | null) {

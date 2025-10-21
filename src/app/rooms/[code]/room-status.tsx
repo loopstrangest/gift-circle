@@ -4,13 +4,22 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useSearchParams } from "next/navigation";
 
-import { fetchRoomSnapshot, RoomSnapshot, RoomMember } from "@/lib/rooms-client";
+import {
+  fetchRoomSnapshot,
+  RoomSnapshot,
+  RoomMember,
+  OfferSummary,
+  DesireSummary,
+} from "@/lib/rooms-client";
 import {
   connectToRoom,
   disconnectSocket,
   onRoomSocketConnect,
+  onRoomEvent,
+  offRoomEvent,
 } from "@/lib/socket-client";
 import type { PresenceMessage } from "@/lib/presence-types";
+import type { RoomRealtimeEvent } from "@/lib/room-types";
 
 function formatJoinedAt(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -69,6 +78,52 @@ function MemberList({
   );
 }
 
+function ItemList({
+  title,
+  items,
+  emptyLabel,
+}: {
+  title: string;
+  items: (OfferSummary | DesireSummary)[];
+  emptyLabel: string;
+}) {
+  return (
+    <section className="card p-6">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+      </div>
+      {items.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">{emptyLabel}</p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {items.map((item) => (
+            <li
+              key={item.id}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {item.title}
+                  </p>
+                  {item.details ? (
+                    <p className="mt-1 text-xs text-slate-600 line-clamp-2">
+                      {item.details}
+                    </p>
+                  ) : null}
+                </div>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  {item.status.toLowerCase()}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
   const searchParams = useSearchParams();
   const membershipId = searchParams.get("membershipId");
@@ -120,6 +175,14 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
       }
     };
 
+    const handleRoomEvent = (event: RoomRealtimeEvent) => {
+      if (event.roomId !== snapshot.id) {
+        return;
+      }
+
+      mutate(["room", snapshot.code]);
+    };
+
     const handleConnect = () => {
       mutate(["room", snapshot.code]);
     };
@@ -131,10 +194,12 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
     onRoomSocketConnect(handleConnect);
     socket.on("presence", handlePresence);
     socket.on("disconnect", handleDisconnect);
+    onRoomEvent<RoomRealtimeEvent>("room:event", handleRoomEvent);
 
     return () => {
       socket.off("presence", handlePresence);
       socket.off("disconnect", handleDisconnect);
+      offRoomEvent("room:event", handleRoomEvent);
       disconnectSocket();
     };
   }, [snapshot.id, snapshot.code, membershipId]);
@@ -193,6 +258,18 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
         <h2 className="text-xl font-semibold text-slate-900">Participants</h2>
         <MemberList members={visibleMembers} currentMembershipId={membershipId} />
       </section>
+
+      <ItemList
+        title="Offers"
+        items={roomData.offers}
+        emptyLabel="No offers have been shared yet."
+      />
+
+      <ItemList
+        title="Desires"
+        items={roomData.desires}
+        emptyLabel="No desires have been shared yet."
+      />
     </main>
   );
 }
