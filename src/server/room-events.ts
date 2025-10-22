@@ -1,4 +1,4 @@
-import type { DesireSummary, OfferSummary } from "@/lib/room-types";
+import type { DesireSummary, OfferSummary, RoomRound } from "@/lib/room-types";
 
 export type RoomEvent =
   | {
@@ -30,4 +30,9 @@ export type RoomEvent =
       type: "desire:deleted";
       roomId: string;
       desireId: string;
+    }
+  | {
+      type: "round:changed";
+      roomId: string;
+      round: RoomRound;
     };

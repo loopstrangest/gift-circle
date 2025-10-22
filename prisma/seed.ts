@@ -23,6 +23,7 @@ async function main() {
     data: {
       code: "ABC123",
       hostId: host.id,
+      currentRound: "OFFERS",
     },
   });
 

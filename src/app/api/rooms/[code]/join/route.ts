@@ -90,6 +90,7 @@ export async function POST(
           id: room.id,
           code: room.code,
           hostId: room.hostId,
+          currentRound: room.currentRound,
         },
         user: {
           id: identity.user.id,
@@ -169,6 +170,7 @@ export async function POST(
           id: room.id,
           code: room.code,
           hostId: identity.user.id,
+          currentRound: room.currentRound,
         },
         user: {
           id: identity.user.id,
@@ -216,6 +218,7 @@ export async function POST(
         id: room.id,
         code: room.code,
         hostId: room.hostId,
+        currentRound: room.currentRound,
       },
       user: {
         id: identity.user.id,

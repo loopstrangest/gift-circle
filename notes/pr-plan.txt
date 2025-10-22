@@ -36,21 +36,28 @@ Pull Request Sequence
    - Extend Prisma schema with Offer, Desire, and Claim models plus status enums. ✅
    - Provide CRUD APIs for offers/desires scoped to room membership. ✅
    - Emit realtime events for offer/desire changes and surface them in room snapshot/ UI. ✅
-10. Offer/desire authoring UI
-    - Add room sub-pages for "My Offers" and "My Desires" with create/edit/delete flows.
-    - Ensure realtime updates broadcast to all room participants.
-11. Claim workflow backend
-    - Implement endpoints to create, accept, decline, and withdraw claims with appropriate status transitions and notifications.
-    - Add authorization checks based on offer/desire ownership and claimer identity.
-12. Claim management UI
-    - Surface claim actions within offer/desire views, including status chips and action buttons.
-    - Provide activity feed summarizing recent claim events for each user.
-13. PDF export service
+10. Round progression system ✅
+    - Persist the current room round (Waiting Room -> Offers -> Desires -> Connections -> Decisions) with host-only controls to advance everyone in sequence.
+    - Broadcast round changes over the realtime layer, expose `/api/rooms/[code]/advance`, and gate client interactions by the active round.
+    - Surface current/next round guidance in the room UI for all participants.
+11. Offer/desire authoring UI (Rounds 1-2)
+    - Add room sub-pages for "My Offers" and "My Desires" with create/edit/delete flows, unlocked only in the relevant round.
+    - Ensure realtime updates broadcast to all room participants and respect round gating rules.
+12. Claim workflow backend (Round 3)
+    - Implement endpoints for creating and withdrawing claims with appropriate status transitions and notifications, available when the room is in Connections.
+    - Add authorization checks based on offer/desire ownership and claimer identity; emit realtime events on state change.
+13. Claim management UI (Round 3)
+    - Surface claim creation and status within offer/desire views, including activity feeds scoped to the Connections round.
+    - Provide clear affordances for participants to propose fulfilling desires or receiving offers during Connections.
+14. Decisions round UI & actions (Round 4)
+    - Deliver host and participant interfaces to accept or decline incoming claims, locked until the room advances to Decisions.
+    - Reflect claim outcomes in realtime and update offer/desire statuses accordingly.
+15. PDF export service
     - Generate per-user PDF summarizing owned offers/desires and commitments using a headless browser or PDF library.
     - Add download entry point in room UI with progress feedback.
-14. Responsive layout & polish
+16. Responsive layout & polish
     - Audit mobile/desktop breakpoints, refine layout, typography, and spacing.
     - Address accessibility, keyboard navigation, and empty state design.
-15. Hardening & QA
+17. Hardening & QA
     - Expand automated test coverage for critical flows; add load-test smoke for realtime layer.
     - Conduct production readiness checklist and finalize documentation for deploy.

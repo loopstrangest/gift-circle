@@ -168,4 +168,22 @@ describe("buildSnapshot", () => {
     expect(snapshot.desires).toHaveLength(1);
     expect(snapshot.desires[0]).toMatchObject({ id: "desire-1", title: "Need help" });
   });
+  it("includes round metadata with state", () => {
+    const room = buildRoom({
+      currentRound: "DESIRES",
+    });
+
+    mockListActiveMemberships.mockReturnValue(new Map());
+
+    const snapshot = buildSnapshot(room);
+
+    expect(snapshot.currentRound).toBe("DESIRES");
+    expect(snapshot.nextRound).toBe("CONNECTIONS");
+    expect(snapshot.canAdvance).toBe(true);
+    expect(snapshot.rounds).toHaveLength(5);
+    const activeRound = snapshot.rounds.find((round) => round.isActive);
+    expect(activeRound?.round).toBe("DESIRES");
+    const completedRounds = snapshot.rounds.filter((round) => round.isComplete);
+    expect(completedRounds.map((round) => round.round)).toEqual(["WAITING", "OFFERS"]);
+  });
 });

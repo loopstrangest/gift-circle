@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
             id: result.room.id,
             code: result.room.code,
             hostId: result.room.hostId,
+            currentRound: result.room.currentRound,
           },
           host: {
             id: identity.user.id,

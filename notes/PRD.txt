@@ -16,6 +16,13 @@ Offers from others that the user has claimed to receive.
 
 The only way for a user to interact with the app is through a web browser at a URL, and the URL should be custom to include the room code. The app should be responsive and work well on both desktop and mobile browsers.
 
+The host has a special privilege to be able to advance all participants through the four (five including the waiting room) rounds. Here is what happens in each round:
+Round 0: Waiting Room - The host creates the room and other participants join the room.
+Round 1: Offers - Participants write and submit their offers.
+Round 2: Desires - Participants write and submit their desires.
+Round 3: Connections - Participants make requests through the web app to receive others' offers and fullfill others' desires.
+Round 4: Decisions - Participants accept or decline all of the requests made to them.
+
 Skills Required:
 
 Persistent data storage

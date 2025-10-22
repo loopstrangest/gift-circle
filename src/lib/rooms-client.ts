@@ -96,6 +96,21 @@ export async function fetchRoomSnapshot(code: string): Promise<RoomSnapshot> {
   return (await response.json()) as RoomSnapshot;
 }
 
+export async function advanceRoomRound(code: string): Promise<RoomSnapshot> {
+  const response = await fetch(`/api/rooms/${code}/advance`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to advance round");
+  }
+
+  return (await response.json()) as RoomSnapshot;
+}
+
 export type PresenceEvent = {
   roomId: string;
   membershipId: string;

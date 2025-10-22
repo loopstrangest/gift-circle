@@ -3,6 +3,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import type { PresenceMessage } from "@/lib/presence-types";
 import {
   emitPresenceUpdate,
+  emitRoomEvent,
   initializeRealtime,
   setRealtimeServerForTests,
 } from "@/server/realtime";
@@ -10,7 +11,6 @@ import {
 const emitSpy = vi.fn();
 const toSpy = vi.fn(() => ({ emit: emitSpy }));
 const onSpy = vi.fn();
-
 vi.mock("socket.io", () => {
   class MockServer {
     to = toSpy;
@@ -19,7 +19,7 @@ vi.mock("socket.io", () => {
   return { Server: MockServer };
 });
 
-describe("realtime presence helpers", () => {
+describe("realtime helpers", () => {
   beforeEach(() => {
     setRealtimeServerForTests(null);
     emitSpy.mockClear();
@@ -59,5 +59,25 @@ describe("realtime presence helpers", () => {
       reason: "created",
     });
     expect(typeof (message as PresenceMessage).timestamp).toBe("number");
+  });
+
+  it("emits room events via the server", () => {
+    const mockServer = initializeRealtime({} as unknown as import("node:http").Server);
+    setRealtimeServerForTests(mockServer);
+    emitSpy.mockClear();
+    toSpy.mockClear();
+
+    emitRoomEvent("room-2", {
+      type: "round:changed",
+      roomId: "room-2",
+      round: "DESIRES",
+    });
+
+    expect(toSpy).toHaveBeenCalledWith("room:room-2");
+    expect(emitSpy).toHaveBeenCalledWith("room:event", {
+      type: "round:changed",
+      roomId: "room-2",
+      round: "DESIRES",
+    });
   });
 });

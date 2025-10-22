@@ -27,6 +27,7 @@ model Room {
   code        String           @unique
   hostId      String
   host        User             @relation("RoomHost", fields: [hostId], references: [id])
+  currentRound RoomRound       @default(WAITING)
   memberships RoomMembership[]
   offers      Offer[]
   desires     Desire[]
@@ -129,4 +130,12 @@ enum ClaimStatus {
   ACCEPTED
   DECLINED
   WITHDRAWN
+}
+
+enum RoomRound {
+  WAITING
+  OFFERS
+  DESIRES
+  CONNECTIONS
+  DECISIONS
 }

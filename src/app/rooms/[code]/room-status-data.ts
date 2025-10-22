@@ -1,7 +1,20 @@
-import type { Desire, Offer, Room, RoomMembership, User } from "@prisma/client";
+import type {
+  Desire,
+  Offer,
+  Room,
+  RoomMembership,
+  RoomRound,
+  User,
+} from "@prisma/client";
 
 import { RoomSnapshot } from "@/lib/room-types";
 import { toDesireSummary, toOfferSummary } from "@/lib/room-items";
+import {
+  canAdvanceRound,
+  getNextRound,
+  getRoundInfo,
+  ROOM_ROUND_SEQUENCE,
+} from "@/lib/room-round";
 import { listActiveMemberships } from "@/server/realtime";
 
 function sortMembers(members: RoomSnapshot["members"]) {
@@ -36,6 +49,7 @@ export function buildSnapshot(
     memberships: (RoomMembership & { user: User })[];
     offers: Offer[];
     desires: Desire[];
+    currentRound: RoomRound;
   }
 ): RoomSnapshot {
   const activeMemberships = listActiveMemberships(room.id);
@@ -53,12 +67,27 @@ export function buildSnapshot(
   );
 
   const hostName = room.host.displayName ?? "Host";
+  const currentRoundIndex = Math.max(ROOM_ROUND_SEQUENCE.indexOf(room.currentRound), 0);
 
   return {
     id: room.id,
     code: room.code,
     hostId: room.hostId,
     hostName,
+    currentRound: room.currentRound,
+    nextRound: getNextRound(room.currentRound),
+    canAdvance: canAdvanceRound(room.currentRound),
+    rounds: ROOM_ROUND_SEQUENCE.map((round, index) => {
+      const info = getRoundInfo(round);
+      return {
+        round,
+        title: info.title,
+        description: info.description,
+        guidance: info.guidance,
+        isActive: index === currentRoundIndex,
+        isComplete: index < currentRoundIndex,
+      } satisfies RoomSnapshot["rounds"][number];
+    }),
     members,
     updatedAt: room.updatedAt.toISOString(),
     offers: mapOffers(room.offers),
@@ -72,6 +101,7 @@ export async function getRoomSnapshot(
     memberships: (RoomMembership & { user: User })[];
     offers: Offer[];
     desires: Desire[];
+    currentRound: RoomRound;
   }
 ) {
   return buildSnapshot(room);
