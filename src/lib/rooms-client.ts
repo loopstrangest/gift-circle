@@ -4,6 +4,7 @@ import type {
   MembershipRole,
   OfferSummary,
   DesireSummary,
+  ItemStatus,
 } from "./room-types";
 
 type RoomResponse = {
@@ -120,5 +121,115 @@ export type PresenceEvent = {
   role: MembershipRole;
   connectedAt: number;
 };
+
+type OfferPayload = {
+  title: string;
+  details?: string | null;
+};
+
+type OfferUpdatePayload = OfferPayload & {
+  status?: ItemStatus;
+};
+
+type DesirePayload = {
+  title: string;
+  details?: string | null;
+};
+
+type DesireUpdatePayload = DesirePayload & {
+  status?: ItemStatus;
+};
+
+export async function createOfferApi(code: string, payload: OfferPayload) {
+  const response = await fetch(`/api/rooms/${code}/offers`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to create offer");
+  }
+
+  return (await response.json()) as OfferSummary;
+}
+
+export async function updateOfferApi(
+  code: string,
+  offerId: string,
+  payload: OfferUpdatePayload
+) {
+  const response = await fetch(`/api/rooms/${code}/offers?offerId=${offerId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to update offer");
+  }
+
+  return (await response.json()) as OfferSummary;
+}
+
+export async function deleteOfferApi(code: string, offerId: string) {
+  const response = await fetch(`/api/rooms/${code}/offers?offerId=${offerId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to delete offer");
+  }
+}
+
+export async function createDesireApi(code: string, payload: DesirePayload) {
+  const response = await fetch(`/api/rooms/${code}/desires`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to create desire");
+  }
+
+  return (await response.json()) as DesireSummary;
+}
+
+export async function updateDesireApi(
+  code: string,
+  desireId: string,
+  payload: DesireUpdatePayload
+) {
+  const response = await fetch(`/api/rooms/${code}/desires?desireId=${desireId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to update desire");
+  }
+
+  return (await response.json()) as DesireSummary;
+}
+
+export async function deleteDesireApi(code: string, desireId: string) {
+  const response = await fetch(`/api/rooms/${code}/desires?desireId=${desireId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to delete desire");
+  }
+}
 
 export type { RoomSnapshot, RoomMember, OfferSummary, DesireSummary };

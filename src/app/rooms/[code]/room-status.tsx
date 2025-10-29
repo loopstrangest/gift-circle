@@ -1,27 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import useSWR, { mutate } from "swr";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 
-import {
-  advanceRoomRound,
-  fetchRoomSnapshot,
-  RoomSnapshot,
-  RoomMember,
-  OfferSummary,
-  DesireSummary,
-} from "@/lib/rooms-client";
-import {
-  connectToRoom,
-  disconnectSocket,
-  onRoomSocketConnect,
-  onRoomEvent,
-  offRoomEvent,
-} from "@/lib/socket-client";
-import type { PresenceMessage } from "@/lib/presence-types";
-import type { RoomRealtimeEvent } from "@/lib/room-types";
-import { getAdvanceLabel, getRoundInfo } from "@/lib/room-round";
+import type { RoomMember, OfferSummary, DesireSummary } from "@/lib/rooms-client";
+import { advanceRoomRound } from "@/lib/rooms-client";
+import { getAdvanceLabel, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
+import { useRoom } from "@/app/rooms/[code]/room-context";
 
 function formatJoinedAt(iso: string) {
   return new Date(iso).toLocaleTimeString([], {
@@ -80,176 +65,152 @@ function MemberList({
   );
 }
 
+type ItemListProps = {
+  title: string;
+  items: (OfferSummary | DesireSummary)[];
+  emptyLabel: string;
+  controls?: ReactNode;
+  getAuthorName?: (membershipId: string) => string | null;
+};
+
 function ItemList({
   title,
   items,
   emptyLabel,
-}: {
-  title: string;
-  items: (OfferSummary | DesireSummary)[];
-  emptyLabel: string;
-}) {
+  controls,
+  getAuthorName,
+}: ItemListProps) {
   return (
     <section className="card p-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+        {controls ?? null}
       </div>
       {items.length === 0 ? (
         <p className="mt-3 text-sm text-slate-500">{emptyLabel}</p>
       ) : (
         <ul className="mt-4 space-y-3">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900">
-                    {item.title}
-                  </p>
-                  {item.details ? (
-                    <p className="mt-1 text-xs text-slate-600 line-clamp-2">
-                      {item.details}
+          {items.map((item) => {
+            const authorName = getAuthorName
+              ? getAuthorName(item.authorMembershipId)
+              : null;
+            return (
+              <li
+                key={item.id}
+                className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      {item.title}
                     </p>
-                  ) : null}
+                    {authorName ? (
+                      <p className="mt-1 text-xs text-slate-500">By {authorName}</p>
+                    ) : null}
+                    {item.details ? (
+                      <p className="mt-1 text-xs text-slate-600 line-clamp-2">
+                        {item.details}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    {item.status.toLowerCase()}
+                  </span>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                  {item.status.toLowerCase()}
-                </span>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
   );
 }
 
-export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
-  const searchParams = useSearchParams();
-  const membershipId = searchParams.get("membershipId");
-  const [members, setMembers] = useState<RoomSnapshot["members"]>(snapshot.members);
-  const [lastUpdated, setLastUpdated] = useState(snapshot.updatedAt);
-  const [isCopying, setIsCopying] = useState(false);
+type SortOption = "chronological" | "author";
+
+export default function RoomStatus() {
+  const { room, membershipId, isHost, refresh } = useRoom();
   const [isAdvancing, setIsAdvancing] = useState(false);
-  const membershipIdRef = useRef<string | null>(membershipId);
-
-  useEffect(() => {
-    membershipIdRef.current = membershipId;
-  }, [membershipId]);
-
-  const fetcher = useCallback(async () => {
-    return fetchRoomSnapshot(snapshot.code);
-  }, [snapshot.code]);
-
-  const { data: latest } = useSWR(["room", snapshot.code], fetcher, {
-    fallbackData: snapshot,
-    refreshInterval: 5_000,
-  });
-
-  const roomData = latest ?? snapshot;
+  const [offerSort, setOfferSort] = useState<SortOption>("chronological");
+  const [desireSort, setDesireSort] = useState<SortOption>("chronological");
 
   const hostMembershipId = useMemo(() => {
-    return (
-      roomData.members.find((member) => member.role === "HOST")?.membershipId ?? null
-    );
-  }, [roomData.members]);
+    return room.members.find((member) => member.role === "HOST")?.membershipId ?? null;
+  }, [room.members]);
 
-  useEffect(() => {
-    setMembers(roomData.members);
-    setLastUpdated(roomData.updatedAt);
-  }, [roomData.members, roomData.updatedAt]);
+  const roundIndex = useMemo(
+    () => ROOM_ROUND_SEQUENCE.indexOf(room.currentRound),
+    [room.currentRound]
+  );
 
-  useEffect(() => {
-    const socket = connectToRoom({
-      roomId: snapshot.id,
-      membershipId: membershipId ?? undefined,
-    });
-
-    const handlePresence = (message: PresenceMessage) => {
-      if (message.roomId !== snapshot.id) {
-        return;
-      }
-
-      switch (message.type) {
-        case "refresh":
-        case "member:connected":
-        case "member:disconnected": {
-          mutate(["room", snapshot.code]);
-          break;
-        }
-        default:
-          break;
-      }
-    };
-
-    const handleRoomEvent = (event: RoomRealtimeEvent) => {
-      if (event.roomId !== snapshot.id) {
-        return;
-      }
-
-      mutate(["room", snapshot.code]);
-    };
-
-    const handleConnect = () => {
-      mutate(["room", snapshot.code]);
-    };
-
-    const handleDisconnect = () => {
-      mutate(["room", snapshot.code]);
-    };
-
-    onRoomSocketConnect(handleConnect);
-    socket.on("presence", handlePresence);
-    socket.on("disconnect", handleDisconnect);
-    onRoomEvent<RoomRealtimeEvent>("room:event", handleRoomEvent);
-
-    return () => {
-      socket.off("presence", handlePresence);
-      socket.off("disconnect", handleDisconnect);
-      offRoomEvent("room:event", handleRoomEvent);
-      disconnectSocket();
-    };
-  }, [snapshot.id, snapshot.code, membershipId]);
+  const offersEnabled = roundIndex >= ROOM_ROUND_SEQUENCE.indexOf("OFFERS");
+  const desiresEnabled = roundIndex >= ROOM_ROUND_SEQUENCE.indexOf("DESIRES");
 
   const visibleMembers = useMemo(() => {
-    return members.slice().sort((a, b) => {
-      if (a.role === b.role) {
-        if (a.isActive === b.isActive) {
-          return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
-        }
-        return a.isActive ? -1 : 1;
+    return room.members.slice().sort((a, b) => {
+      if (a.role === "HOST") {
+        return -1;
       }
-      return a.role === "HOST" ? -1 : 1;
+      if (b.role === "HOST") {
+        return 1;
+      }
+
+      return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
     });
-  }, [members]);
+  }, [room.members]);
 
-  const isViewingHostControls =
-    typeof membershipId === "string" &&
-    hostMembershipId !== null &&
-    membershipId === hostMembershipId;
+  const getMemberDisplayName = useCallback(
+    (authorMembershipId: string) => {
+      const member = room.members.find(
+        (entry) => entry.membershipId === authorMembershipId
+      );
+      if (!member) {
+        return "Unknown";
+      }
+      const nickname = member.nickname?.trim();
+      const displayName = member.displayName?.trim();
+      return nickname || displayName || (member.role === "HOST" ? "Host" : "Anonymous");
+    },
+    [room.members]
+  );
 
-  const handleCopyCode = async () => {
-    try {
-      setIsCopying(true);
-      await navigator.clipboard.writeText(roomData.code);
-      setTimeout(() => setIsCopying(false), 1000);
-    } catch (error) {
-      console.error("Failed to copy room code", error);
-      setIsCopying(false);
+  const sortedOffers = useMemo(() => {
+    if (offerSort === "author") {
+      return [...room.offers].sort((a, b) =>
+        getMemberDisplayName(a.authorMembershipId).localeCompare(
+          getMemberDisplayName(b.authorMembershipId),
+          undefined,
+          { sensitivity: "base" }
+        )
+      );
     }
-  };
+    return room.offers;
+  }, [room.offers, offerSort, getMemberDisplayName]);
+
+  const sortedDesires = useMemo(() => {
+    if (desireSort === "author") {
+      return [...room.desires].sort((a, b) =>
+        getMemberDisplayName(a.authorMembershipId).localeCompare(
+          getMemberDisplayName(b.authorMembershipId),
+          undefined,
+          { sensitivity: "base" }
+        )
+      );
+    }
+    return room.desires;
+  }, [room.desires, desireSort, getMemberDisplayName]);
+
+  const isViewingHostControls = isHost && hostMembershipId === membershipId;
 
   const handleAdvanceRound = async () => {
-    if (isAdvancing || !roomData.nextRound) {
+    if (isAdvancing || !room.nextRound) {
       return;
     }
 
     try {
       setIsAdvancing(true);
-      await advanceRoomRound(roomData.code);
-      await mutate(["room", snapshot.code]);
+      await advanceRoomRound(room.code);
+      await refresh();
     } catch (error) {
       console.error("Failed to advance round", error);
     } finally {
@@ -257,67 +218,54 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
     }
   };
 
-  return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-6 py-10">
-      <header className="card p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-slate-900">
-              Room {roomData.code}
-            </h1>
-            <p className="mt-2 text-sm text-slate-600">
-              Hosted by{" "}
-              <span className="font-medium text-slate-900">
-                {roomData.hostName ?? "Anonymous"}
-              </span>
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Last updated {formatJoinedAt(lastUpdated)}
-            </p>
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700">
-                  {getRoundInfo(roomData.currentRound).title}
-                </span>
-                {roomData.nextRound ? (
-                  <span className="text-xs text-slate-600">
-                    Next: {getRoundInfo(roomData.nextRound).title}
-                  </span>
-                ) : (
-                  <span className="text-xs text-slate-600">Final round</span>
-                )}
-              </div>
-              <p className="text-xs text-slate-600">
-                {getRoundInfo(roomData.currentRound).guidance}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="btn-secondary"
-            onClick={handleCopyCode}
-            disabled={isCopying}
-          >
-            {isCopying ? "Copied!" : "Copy room code"}
-          </button>
-        </div>
-      </header>
+  const sortSelectClass =
+    "rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700";
 
-      {roomData.canAdvance && isViewingHostControls ? (
+  const offerSortControls = (
+    <label className="flex items-center gap-2 text-xs text-slate-500">
+      Sort by
+      <select
+        className={sortSelectClass}
+        value={offerSort}
+        onChange={(event) => setOfferSort(event.target.value as SortOption)}
+      >
+        <option value="chronological">Chronological</option>
+        <option value="author">Author</option>
+      </select>
+    </label>
+  );
+
+  const desireSortControls = (
+    <label className="flex items-center gap-2 text-xs text-slate-500">
+      Sort by
+      <select
+        className={sortSelectClass}
+        value={desireSort}
+        onChange={(event) => setDesireSort(event.target.value as SortOption)}
+      >
+        <option value="chronological">Chronological</option>
+        <option value="author">Author</option>
+      </select>
+    </label>
+  );
+
+  return (
+    <section className="flex flex-col gap-6">
+      {room.canAdvance && isViewingHostControls ? (
         <section className="card flex flex-col gap-4 p-6">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Host controls</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Host Controls</h2>
             <p className="text-sm text-slate-600">
               Advance the circle when everyone is ready for the next step.
             </p>
           </div>
           <button
             type="button"
-            className="btn-primary w-full sm:w-auto"
+            className="btn-primary inline-flex items-center gap-2 self-start"
             onClick={handleAdvanceRound}
-            disabled={isAdvancing || !roomData.nextRound}
+            disabled={isAdvancing || !room.nextRound}
           >
-            {isAdvancing ? "Advancing…" : getAdvanceLabel(roomData.nextRound)}
+            {isAdvancing ? "Advancing…" : getAdvanceLabel(room.nextRound)}
           </button>
         </section>
       ) : null}
@@ -327,17 +275,25 @@ export default function RoomStatus({ snapshot }: { snapshot: RoomSnapshot }) {
         <MemberList members={visibleMembers} currentMembershipId={membershipId} />
       </section>
 
-      <ItemList
-        title="Offers"
-        items={roomData.offers}
-        emptyLabel="No offers have been shared yet."
-      />
+      {offersEnabled ? (
+        <ItemList
+          title="Offers"
+          items={sortedOffers}
+          emptyLabel="No offers have been shared yet."
+          controls={offerSortControls}
+          getAuthorName={getMemberDisplayName}
+        />
+      ) : null}
 
-      <ItemList
-        title="Desires"
-        items={roomData.desires}
-        emptyLabel="No desires have been shared yet."
-      />
-    </main>
+      {desiresEnabled ? (
+        <ItemList
+          title="Desires"
+          items={sortedDesires}
+          emptyLabel="No desires have been shared yet."
+          controls={desireSortControls}
+          getAuthorName={getMemberDisplayName}
+        />
+      ) : null}
+    </section>
   );
 }

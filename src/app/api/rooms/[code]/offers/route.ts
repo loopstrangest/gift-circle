@@ -105,6 +105,16 @@ export async function POST(
     return response;
   }
 
+  if (room.currentRound !== "OFFERS") {
+    return NextResponse.json(
+      {
+        error: "Cannot create offers outside of the Offers round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
+  }
+
   const parseResult = CreateOfferSchema.safeParse(
     await request.json().catch(() => ({}))
   );
@@ -166,6 +176,16 @@ export async function PATCH(
   const membership = await ensureMembership(room.id, identity.user.id);
   if (!membership) {
     return NextResponse.json({ error: "Not a member of this room" }, { status: 403 });
+  }
+
+  if (room.currentRound !== "OFFERS") {
+    return NextResponse.json(
+      {
+        error: "Cannot update offers outside of the Offers round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
   }
 
   const existing = await prisma.offer.findUnique({ where: { id: offerId } });
@@ -235,6 +255,16 @@ export async function DELETE(
   const membership = await ensureMembership(room.id, identity.user.id);
   if (!membership) {
     return NextResponse.json({ error: "Not a member of this room" }, { status: 403 });
+  }
+
+  if (room.currentRound !== "OFFERS") {
+    return NextResponse.json(
+      {
+        error: "Cannot delete offers outside of the Offers round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
   }
 
   const existing = await prisma.offer.findUnique({ where: { id: offerId } });

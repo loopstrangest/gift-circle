@@ -19,13 +19,14 @@ import { listActiveMemberships } from "@/server/realtime";
 
 function sortMembers(members: RoomSnapshot["members"]) {
   return [...members].sort((a, b) => {
-    if (a.role === b.role) {
-      if (a.isActive === b.isActive) {
-        return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
-      }
-      return a.isActive ? -1 : 1;
+    if (a.role === "HOST") {
+      return -1;
     }
-    return a.role === "HOST" ? -1 : 1;
+    if (b.role === "HOST") {
+      return 1;
+    }
+
+    return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
   });
 }
 

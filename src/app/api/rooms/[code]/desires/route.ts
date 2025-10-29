@@ -105,6 +105,16 @@ export async function POST(
     return response;
   }
 
+  if (room.currentRound !== "DESIRES") {
+    return NextResponse.json(
+      {
+        error: "Cannot create desires outside of the Desires round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
+  }
+
   const parseResult = CreateDesireSchema.safeParse(
     await request.json().catch(() => ({}))
   );
@@ -166,6 +176,16 @@ export async function PATCH(
   const membership = await ensureMembership(room.id, identity.user.id);
   if (!membership) {
     return NextResponse.json({ error: "Not a member of this room" }, { status: 403 });
+  }
+
+  if (room.currentRound !== "DESIRES") {
+    return NextResponse.json(
+      {
+        error: "Cannot update desires outside of the Desires round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
   }
 
   const existing = await prisma.desire.findUnique({ where: { id: desireId } });
@@ -235,6 +255,16 @@ export async function DELETE(
   const membership = await ensureMembership(room.id, identity.user.id);
   if (!membership) {
     return NextResponse.json({ error: "Not a member of this room" }, { status: 403 });
+  }
+
+  if (room.currentRound !== "DESIRES") {
+    return NextResponse.json(
+      {
+        error: "Cannot delete desires outside of the Desires round",
+        message: `Room is currently in the ${room.currentRound} round`,
+      },
+      { status: 409 }
+    );
   }
 
   const existing = await prisma.desire.findUnique({ where: { id: desireId } });

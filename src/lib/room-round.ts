@@ -20,7 +20,7 @@ const ROUND_INFO: Record<RoomRound, RoomRoundInfo> = {
     key: "WAITING",
     title: "Waiting Room",
     description: "The host is getting everyone settled before the session begins.",
-    guidance: "Sit tight while the host starts the Offers round.",
+    guidance: "",
   },
   OFFERS: {
     key: "OFFERS",
