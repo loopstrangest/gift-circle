@@ -40,12 +40,13 @@ Pull Request Sequence
     - Persist the current room round (Waiting Room -> Offers -> Desires -> Connections -> Decisions) with host-only controls to advance everyone in sequence.
     - Broadcast round changes over the realtime layer, expose `/api/rooms/[code]/advance`, and gate client interactions by the active round.
     - Surface current/next round guidance in the room UI for all participants.
-11. Offer/desire authoring UI (Rounds 1-2)
-    - Add room sub-pages for "My Offers" and "My Desires" with create/edit/delete flows, unlocked only in the relevant round.
-    - Ensure realtime updates broadcast to all room participants and respect round gating rules.
-12. Claim workflow backend (Round 3)
-    - Implement endpoints for creating and withdrawing claims with appropriate status transitions and notifications, available when the room is in Connections.
-    - Add authorization checks based on offer/desire ownership and claimer identity; emit realtime events on state change.
+11. Offer/desire authoring UI (Rounds 1-2) ✅
+    - Add room sub-pages for "My Offers" and "My Desires" with create/edit/delete flows, unlocked only in the relevant round. ✅
+    - Ensure realtime updates broadcast to all room participants and respect round gating rules. ✅
+    - Auto-redirect participants as rounds change, hide irrelevant navigation, and expose author-aware sorting in the overview. ✅
+12. Claim workflow backend (Round 3) ✅
+    - Implement endpoints for creating and withdrawing claims with appropriate status transitions and notifications, available when the room is in Connections. ✅
+    - Add authorization checks based on offer/desire ownership and claimer identity; emit realtime events on state change. ✅
 13. Claim management UI (Round 3)
     - Surface claim creation and status within offer/desire views, including activity feeds scoped to the Connections round.
     - Provide clear affordances for participants to propose fulfilling desires or receiving offers during Connections.

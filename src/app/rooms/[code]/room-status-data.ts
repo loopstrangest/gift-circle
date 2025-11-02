@@ -1,4 +1,5 @@
 import type {
+  Claim,
   Desire,
   Offer,
   Room,
@@ -9,6 +10,7 @@ import type {
 
 import { RoomSnapshot } from "@/lib/room-types";
 import { toDesireSummary, toOfferSummary } from "@/lib/room-items";
+import { toClaimSummary } from "@/lib/room-claims";
 import {
   canAdvanceRound,
   getNextRound,
@@ -44,12 +46,20 @@ function mapDesires(desires: Desire[]): RoomSnapshot["desires"] {
     .map((desire) => toDesireSummary(desire));
 }
 
+function mapClaims(claims: Claim[]): RoomSnapshot["claims"] {
+  return claims
+    .slice()
+    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    .map((claim) => toClaimSummary(claim));
+}
+
 export function buildSnapshot(
   room: Room & {
     host: User;
     memberships: (RoomMembership & { user: User })[];
     offers: Offer[];
     desires: Desire[];
+    claims: Claim[];
     currentRound: RoomRound;
   }
 ): RoomSnapshot {
@@ -93,6 +103,7 @@ export function buildSnapshot(
     updatedAt: room.updatedAt.toISOString(),
     offers: mapOffers(room.offers),
     desires: mapDesires(room.desires),
+    claims: mapClaims(room.claims),
   };
 }
 
@@ -102,6 +113,7 @@ export async function getRoomSnapshot(
     memberships: (RoomMembership & { user: User })[];
     offers: Offer[];
     desires: Desire[];
+    claims: Claim[];
     currentRound: RoomRound;
   }
 ) {

@@ -4,6 +4,7 @@ import type {
   MembershipRole,
   OfferSummary,
   DesireSummary,
+  ClaimSummary,
   ItemStatus,
 } from "./room-types";
 
@@ -140,6 +141,12 @@ type DesireUpdatePayload = DesirePayload & {
   status?: ItemStatus;
 };
 
+type ClaimPayload = {
+  offerId?: string;
+  desireId?: string;
+  note?: string | null;
+};
+
 export async function createOfferApi(code: string, payload: OfferPayload) {
   const response = await fetch(`/api/rooms/${code}/offers`, {
     method: "POST",
@@ -232,4 +239,49 @@ export async function deleteDesireApi(code: string, desireId: string) {
   }
 }
 
-export type { RoomSnapshot, RoomMember, OfferSummary, DesireSummary };
+export async function listClaimsApi(code: string): Promise<ClaimSummary[]> {
+  const response = await fetch(`/api/rooms/${code}/claims`);
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to load claims");
+  }
+
+  return (await response.json()) as ClaimSummary[];
+}
+
+export async function createClaimApi(code: string, payload: ClaimPayload) {
+  const response = await fetch(`/api/rooms/${code}/claims`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to create claim");
+  }
+
+  return (await response.json()) as ClaimSummary;
+}
+
+export async function withdrawClaimApi(code: string, claimId: string) {
+  const response = await fetch(
+    `/api/rooms/${code}/claims?claimId=${encodeURIComponent(claimId)}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "WITHDRAWN" }),
+    }
+  );
+
+  if (!response.ok) {
+    throw await buildApiError(response, "Failed to withdraw claim");
+  }
+
+  return (await response.json()) as ClaimSummary;
+}
+
+export type { RoomSnapshot, RoomMember, OfferSummary, DesireSummary, ClaimSummary };

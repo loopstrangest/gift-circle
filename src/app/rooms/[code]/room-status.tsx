@@ -71,6 +71,7 @@ type ItemListProps = {
   emptyLabel: string;
   controls?: ReactNode;
   getAuthorName?: (membershipId: string) => string | null;
+  authorLabel?: string;
 };
 
 function ItemList({
@@ -79,6 +80,7 @@ function ItemList({
   emptyLabel,
   controls,
   getAuthorName,
+  authorLabel,
 }: ItemListProps) {
   return (
     <section className="card p-6">
@@ -105,7 +107,9 @@ function ItemList({
                       {item.title}
                     </p>
                     {authorName ? (
-                      <p className="mt-1 text-xs text-slate-500">By {authorName}</p>
+                    <p className="mt-1 text-xs italic text-slate-500">
+                      {authorLabel ? `${authorLabel} ${authorName}` : authorName}
+                    </p>
                     ) : null}
                     {item.details ? (
                       <p className="mt-1 text-xs text-slate-600 line-clamp-2">
@@ -282,6 +286,7 @@ export default function RoomStatus() {
           emptyLabel="No offers have been shared yet."
           controls={offerSortControls}
           getAuthorName={getMemberDisplayName}
+          authorLabel="From:"
         />
       ) : null}
 
@@ -292,6 +297,7 @@ export default function RoomStatus() {
           emptyLabel="No desires have been shared yet."
           controls={desireSortControls}
           getAuthorName={getMemberDisplayName}
+          authorLabel="To:"
         />
       ) : null}
     </section>

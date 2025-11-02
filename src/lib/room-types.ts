@@ -23,6 +23,7 @@ export type RoomSnapshot = {
   updatedAt: string;
   offers: OfferSummary[];
   desires: DesireSummary[];
+  claims: ClaimSummary[];
 };
 
 export type ItemStatus = "OPEN" | "FULFILLED" | "WITHDRAWN";
@@ -44,6 +45,20 @@ export type DesireSummary = {
   title: string;
   details: string | null;
   status: ItemStatus;
+  updatedAt: string;
+};
+
+export type ClaimStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "WITHDRAWN";
+
+export type ClaimSummary = {
+  id: string;
+  roomId: string;
+  claimerMembershipId: string;
+  offerId: string | null;
+  desireId: string | null;
+  status: ClaimStatus;
+  note: string | null;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -77,6 +92,16 @@ export type RoomRealtimeEvent =
       type: "desire:deleted";
       roomId: string;
       desireId: string;
+    }
+  | {
+      type: "claim:created";
+      roomId: string;
+      claim: ClaimSummary;
+    }
+  | {
+      type: "claim:updated";
+      roomId: string;
+      claim: ClaimSummary;
     }
   | {
       type: "round:changed";

@@ -43,6 +43,7 @@ export async function POST(
       },
       offers: true,
       desires: true,
+      claims: true,
     },
   });
 
@@ -83,6 +84,7 @@ export async function POST(
       },
       offers: true,
       desires: true,
+      claims: true,
     },
   });
 

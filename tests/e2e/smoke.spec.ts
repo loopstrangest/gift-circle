@@ -1,9 +1,21 @@
 import { test, expect } from "@playwright/test";
 
-test("home page renders call-to-action buttons", async ({ page }) => {
-  await page.goto("/");
+const viewports = [
+  { name: "mobile", width: 375, height: 667 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "desktop", width: 1280, height: 720 },
+];
 
-  await expect(page.getByRole("heading", { name: "Gift Circle" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Create room" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
-});
+for (const viewport of viewports) {
+  test.describe(`${viewport.name} viewport`, () => {
+    test.use({ viewport: { width: viewport.width, height: viewport.height } });
+
+    test("home page renders call-to-action buttons", async ({ page }) => {
+      await page.goto("/");
+
+      await expect(page.getByRole("heading", { name: "Gift Circle" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Create room" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
+    });
+  });
+}

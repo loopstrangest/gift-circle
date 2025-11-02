@@ -1,4 +1,9 @@
-import type { DesireSummary, OfferSummary, RoomRound } from "@/lib/room-types";
+import type {
+  ClaimSummary,
+  DesireSummary,
+  OfferSummary,
+  RoomRound,
+} from "@/lib/room-types";
 
 export type RoomEvent =
   | {
@@ -30,6 +35,16 @@ export type RoomEvent =
       type: "desire:deleted";
       roomId: string;
       desireId: string;
+    }
+  | {
+      type: "claim:created";
+      roomId: string;
+      claim: ClaimSummary;
+    }
+  | {
+      type: "claim:updated";
+      roomId: string;
+      claim: ClaimSummary;
     }
   | {
       type: "round:changed";

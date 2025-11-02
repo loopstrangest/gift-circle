@@ -42,6 +42,7 @@ export async function loadRoomRouteData({
       },
       offers: true,
       desires: true,
+      claims: true,
     },
   });
 

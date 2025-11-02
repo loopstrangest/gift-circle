@@ -58,6 +58,7 @@ function buildRoom(overrides: Partial<RoomInput> = {}): RoomInput {
     ],
     offers: [],
     desires: [],
+    claims: [],
     ...overrides,
   } satisfies RoomInput;
 }
@@ -150,6 +151,7 @@ describe("buildSnapshot", () => {
           updatedAt: new Date("2025-01-01T00:07:00.000Z"),
         },
       ],
+      claims: [],
     });
 
     mockListActiveMemberships.mockReturnValue(
@@ -167,6 +169,43 @@ describe("buildSnapshot", () => {
 
     expect(snapshot.desires).toHaveLength(1);
     expect(snapshot.desires[0]).toMatchObject({ id: "desire-1", title: "Need help" });
+  });
+
+  it("maps claims into summaries", () => {
+    const room = buildRoom({
+      claims: [
+        {
+          id: "claim-2",
+          roomId: "room-1",
+          claimerMembershipId: "membership-guest",
+          offerId: "offer-2",
+          desireId: null,
+          status: "WITHDRAWN",
+          note: "No longer needed",
+          createdAt: new Date("2025-01-01T00:11:00.000Z"),
+          updatedAt: new Date("2025-01-01T00:16:00.000Z"),
+        },
+        {
+          id: "claim-1",
+          roomId: "room-1",
+          claimerMembershipId: "membership-host",
+          offerId: null,
+          desireId: "desire-1",
+          status: "PENDING",
+          note: null,
+          createdAt: new Date("2025-01-01T00:08:00.000Z"),
+          updatedAt: new Date("2025-01-01T00:09:00.000Z"),
+        },
+      ],
+    });
+
+    mockListActiveMemberships.mockReturnValue(new Map());
+
+    const snapshot = buildSnapshot(room);
+
+    expect(snapshot.claims).toHaveLength(2);
+    expect(snapshot.claims[0]).toMatchObject({ id: "claim-1", status: "PENDING" });
+    expect(snapshot.claims[1]).toMatchObject({ id: "claim-2", status: "WITHDRAWN" });
   });
   it("includes round metadata with state", () => {
     const room = buildRoom({

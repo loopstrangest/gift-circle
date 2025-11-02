@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState, useTransition } from "react";
+import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { createRoom, joinRoom } from "@/lib/rooms-client";
@@ -15,46 +15,8 @@ export default function HomePage() {
   const { identity, setDisplayName, refresh } = useIdentity();
   const [viewState, setViewState] = useState<ViewState>({ mode: "idle" });
   const [error, setError] = useState<string | null>(null);
-  const [lastMembership, setLastMembership] = useState<{
-    roomCode: string;
-    membershipId: string;
-  } | null>(null);
   const [isNavigating, startTransition] = useTransition();
   const router = useRouter();
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const raw = window.localStorage.getItem("gift-circle:last-membership");
-    if (!raw) {
-      setLastMembership(null);
-      return;
-    }
-    try {
-      const parsed = JSON.parse(raw) as { roomCode?: string; membershipId?: string };
-      if (parsed.roomCode && parsed.membershipId) {
-        setLastMembership({
-          roomCode: parsed.roomCode,
-          membershipId: parsed.membershipId,
-        });
-      } else {
-        setLastMembership(null);
-      }
-    } catch (error) {
-      console.error("Failed to read last membership", error);
-      setLastMembership(null);
-    }
-  }, [identity?.userId, identity?.displayName]);
-
-  const handleReturnToCircle = () => {
-    if (!lastMembership) {
-      return;
-    }
-    router.push(
-      `/rooms/${lastMembership.roomCode}?membershipId=${lastMembership.membershipId}`
-    );
-  };
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -144,14 +106,6 @@ export default function HomePage() {
           together.
         </p>
       </header>
-
-      {lastMembership ? (
-        <div className="-mt-4 -mb-4 flex justify-center">
-          <button type="button" className="btn-primary" onClick={handleReturnToCircle}>
-            Return to Circle
-          </button>
-        </div>
-      ) : null}
 
       <section className="grid gap-6 md:grid-cols-2">
         <form onSubmit={handleCreate} className="card flex flex-col gap-4 p-6">
