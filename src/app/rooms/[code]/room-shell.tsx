@@ -10,6 +10,7 @@ import { getRoundInfo, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
 
 const OFFERS_INDEX = ROOM_ROUND_SEQUENCE.indexOf("OFFERS");
 const DESIRES_INDEX = ROOM_ROUND_SEQUENCE.indexOf("DESIRES");
+const CONNECTIONS_INDEX = ROOM_ROUND_SEQUENCE.indexOf("CONNECTIONS");
 
 type NavLink = {
   href: string;
@@ -21,6 +22,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "", label: "Overview", minRoundIndex: OFFERS_INDEX },
   { href: "offers", label: "My Offers", minRoundIndex: OFFERS_INDEX },
   { href: "desires", label: "My Desires", minRoundIndex: DESIRES_INDEX },
+  { href: "connections", label: "Connections", minRoundIndex: CONNECTIONS_INDEX },
 ];
 
 export function RoomShell({ children }: { children: ReactNode }) {
@@ -55,6 +57,8 @@ export function RoomShell({ children }: { children: ReactNode }) {
         targetPath = `/rooms/${room.code}/offers`;
       } else if (room.currentRound === "DESIRES") {
         targetPath = `/rooms/${room.code}/desires`;
+      } else if (room.currentRound === "CONNECTIONS") {
+        targetPath = `/rooms/${room.code}/connections`;
       }
 
       if (targetPath && currentPath !== targetPath) {
@@ -105,7 +109,7 @@ export function RoomShell({ children }: { children: ReactNode }) {
             </div>
           </div>
           {showNav ? (
-            <nav className="flex flex-wrap gap-2">
+            <nav className="flex w-full flex-wrap justify-center gap-2 md:w-auto md:justify-start">
               {availableLinks.map((entry) => {
                 const targetPath =
                   entry.href.length > 0

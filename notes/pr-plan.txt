@@ -47,9 +47,9 @@ Pull Request Sequence
 12. Claim workflow backend (Round 3) ✅
     - Implement endpoints for creating and withdrawing claims with appropriate status transitions and notifications, available when the room is in Connections. ✅
     - Add authorization checks based on offer/desire ownership and claimer identity; emit realtime events on state change. ✅
-13. Claim management UI (Round 3)
-    - Surface claim creation and status within offer/desire views, including activity feeds scoped to the Connections round.
-    - Provide clear affordances for participants to propose fulfilling desires or receiving offers during Connections.
+13. Claim management UI (Round 3) ✅
+    - Surface claim creation and status within offer/desire views, including activity feeds scoped to the Connections round. ✅
+    - Provide clear affordances for participants to propose fulfilling desires or receiving offers during Connections. ✅
 14. Decisions round UI & actions (Round 4)
     - Deliver host and participant interfaces to accept or decline incoming claims, locked until the room advances to Decisions.
     - Reflect claim outcomes in realtime and update offer/desire statuses accordingly.
