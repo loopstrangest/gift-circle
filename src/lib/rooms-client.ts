@@ -265,7 +265,16 @@ export async function createClaimApi(code: string, payload: ClaimPayload) {
   return (await response.json()) as ClaimSummary;
 }
 
-export async function withdrawClaimApi(code: string, claimId: string) {
+type ClaimStatusUpdatePayload = {
+  status: "WITHDRAWN" | "ACCEPTED" | "DECLINED";
+};
+
+async function updateClaimStatusApi(
+  code: string,
+  claimId: string,
+  payload: ClaimStatusUpdatePayload,
+  errorMessage: string
+): Promise<ClaimSummary> {
   const response = await fetch(
     `/api/rooms/${code}/claims?claimId=${encodeURIComponent(claimId)}`,
     {
@@ -273,15 +282,27 @@ export async function withdrawClaimApi(code: string, claimId: string) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ status: "WITHDRAWN" }),
+      body: JSON.stringify(payload),
     }
   );
 
   if (!response.ok) {
-    throw await buildApiError(response, "Failed to withdraw claim");
+    throw await buildApiError(response, errorMessage);
   }
 
   return (await response.json()) as ClaimSummary;
+}
+
+export async function withdrawClaimApi(code: string, claimId: string) {
+  return updateClaimStatusApi(code, claimId, { status: "WITHDRAWN" }, "Failed to withdraw claim");
+}
+
+export async function decideClaimApi(
+  code: string,
+  claimId: string,
+  status: "ACCEPTED" | "DECLINED"
+) {
+  return updateClaimStatusApi(code, claimId, { status }, "Failed to update claim");
 }
 
 export type { RoomSnapshot, RoomMember, OfferSummary, DesireSummary, ClaimSummary };

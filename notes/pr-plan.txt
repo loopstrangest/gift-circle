@@ -50,9 +50,11 @@ Pull Request Sequence
 13. Claim management UI (Round 3) ✅
     - Surface claim creation and status within offer/desire views, including activity feeds scoped to the Connections round. ✅
     - Provide clear affordances for participants to propose fulfilling desires or receiving offers during Connections. ✅
-14. Decisions round UI & actions (Round 4)
-    - Deliver host and participant interfaces to accept or decline incoming claims, locked until the room advances to Decisions.
-    - Reflect claim outcomes in realtime and update offer/desire statuses accordingly.
+14. Decisions round UI & actions (Round 4) ✅
+    - Deliver host and participant interfaces to accept or decline incoming claims, locked until the room advances to Decisions. ✅
+    - Reflect claim outcomes in realtime and update offer/desire statuses accordingly. ✅
+    - Add Decisions navigation link, page shell, and realtime refresh hooks. ✅
+    - Extend automated tests (API + UI) to cover decisions workflow. ✅
 15. PDF export service
     - Generate per-user PDF summarizing owned offers/desires and commitments using a headless browser or PDF library.
     - Add download entry point in room UI with progress feedback.

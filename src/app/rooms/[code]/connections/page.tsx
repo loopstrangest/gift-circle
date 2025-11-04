@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 
 import {
   createClaimApi,
@@ -83,7 +83,7 @@ export default function ConnectionsPage() {
       .filter((claim) => claim.claimerMembershipId === membershipId)
       .slice()
       .sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        (a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
       );
   }, [room.claims, membershipId]);
 
@@ -438,7 +438,7 @@ export default function ConnectionsPage() {
                         className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
                       >
                         <div className="flex flex-col gap-2">
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center justify-between gap-3">
                             <p className="text-sm text-slate-700">
                               <span className="font-semibold">{description}</span>{" "}
                               <em className="font-semibold italic text-slate-900">
@@ -446,15 +446,10 @@ export default function ConnectionsPage() {
                               </em>{" "}
                               {counterpartPhrase}.
                             </p>
-                            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold capitalize text-slate-600">
-                              {STATUS_LABELS[claim.status] ??
-                                claim.status.toLowerCase()}
-                            </span>
-                          </div>
                           {canWithdraw ? (
                             <button
                               type="button"
-                              className="btn-secondary mx-auto text-xs whitespace-nowrap"
+                              className="btn-secondary text-xs whitespace-nowrap"
                               onClick={() => handleWithdrawClaim(claim)}
                               disabled={withdrawingClaimId === claim.id}
                             >
@@ -462,7 +457,13 @@ export default function ConnectionsPage() {
                                 ? "Withdrawing…"
                                 : "Withdraw"}
                             </button>
-                          ) : null}
+                          ) : (
+                            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold capitalize text-slate-600">
+                              {STATUS_LABELS[claim.status] ??
+                                claim.status.toLowerCase()}
+                            </span>
+                          )}
+                          </div>
                         </div>
                       </li>
                     );

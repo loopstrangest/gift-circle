@@ -13,6 +13,7 @@ import {
   toClaimSummary,
   updateClaimStatus,
 } from "@/lib/room-claims";
+import { toDesireSummary, toOfferSummary } from "@/lib/room-items";
 import { emitRoomEvent } from "@/server/realtime";
 
 const CreateClaimSchema = z
@@ -30,8 +31,8 @@ const CreateClaimSchema = z
     path: ["offerId"],
   });
 
-const WithdrawClaimSchema = z.object({
-  status: z.literal("WITHDRAWN"),
+const UpdateClaimSchema = z.object({
+  status: z.enum(["WITHDRAWN", "ACCEPTED", "DECLINED"]),
 });
 
 async function resolveRoom(code: string) {
@@ -254,52 +255,128 @@ export async function PATCH(
 
   const room = await resolveRoom(roomCode);
   if (!room) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return withIdentityCookie(
+      NextResponse.json({ error: "Room not found" }, { status: 404 }),
+      identity
+    );
   }
 
   const membership = await ensureMembership(room.id, identity.user.id);
   if (!membership) {
-    return NextResponse.json({ error: "Not a member of this room" }, { status: 403 });
-  }
-
-  if (room.currentRound !== "CONNECTIONS") {
-    return NextResponse.json(
-      {
-        error: "Cannot withdraw claims outside of the Connections round",
-        message: `Room is currently in the ${room.currentRound} round`,
-      },
-      { status: 409 }
+    return withIdentityCookie(
+      NextResponse.json({ error: "Not a member of this room" }, { status: 403 }),
+      identity
     );
   }
 
-  const parseResult = WithdrawClaimSchema.safeParse(
+  const parseResult = UpdateClaimSchema.safeParse(
     await request.json().catch(() => ({}))
   );
 
   if (!parseResult.success) {
-    return NextResponse.json(
-      { error: "Invalid request body", issues: parseResult.error.issues },
-      { status: 400 }
+    return withIdentityCookie(
+      NextResponse.json(
+        { error: "Invalid request body", issues: parseResult.error.issues },
+        { status: 400 }
+      ),
+      identity
     );
   }
 
-  const existing = await prisma.claim.findUnique({ where: { id: claimId } });
-  if (!existing || existing.roomId !== room.id) {
-    return NextResponse.json({ error: "Claim not found" }, { status: 404 });
-  }
+  const requestedStatus = parseResult.data.status;
 
-  if (existing.claimerMembershipId !== membership.id) {
-    return NextResponse.json({ error: "Not allowed" }, { status: 403 });
+  const existing = await prisma.claim.findUnique({
+    where: { id: claimId },
+    include: {
+      offer: true,
+      desire: true,
+    },
+  });
+  if (!existing || existing.roomId !== room.id) {
+    return withIdentityCookie(
+      NextResponse.json({ error: "Claim not found" }, { status: 404 }),
+      identity
+    );
   }
 
   if (existing.status !== "PENDING") {
-    return NextResponse.json(
-      { error: "Only pending claims can be withdrawn" },
-      { status: 409 }
+    return withIdentityCookie(
+      NextResponse.json(
+        { error: "Only pending claims can be updated" },
+        { status: 409 }
+      ),
+      identity
     );
   }
 
-  const updated = await updateClaimStatus(claimId, "WITHDRAWN");
+  if (requestedStatus === "WITHDRAWN") {
+    if (room.currentRound !== "CONNECTIONS") {
+      return withIdentityCookie(
+        NextResponse.json(
+          {
+            error: "Cannot withdraw claims outside of the Connections round",
+            message: `Room is currently in the ${room.currentRound} round`,
+          },
+          { status: 409 }
+        ),
+        identity
+      );
+    }
+
+    if (existing.claimerMembershipId !== membership.id) {
+      return withIdentityCookie(
+        NextResponse.json({ error: "Not allowed" }, { status: 403 }),
+        identity
+      );
+    }
+
+    const updated = await updateClaimStatus(claimId, "WITHDRAWN");
+    const summary = toClaimSummary(updated);
+
+    emitRoomEvent(room.id, {
+      type: "claim:updated",
+      roomId: room.id,
+      claim: summary,
+    });
+
+    return withIdentityCookie(NextResponse.json(summary), identity);
+  }
+
+  if (room.currentRound !== "DECISIONS") {
+    return withIdentityCookie(
+      NextResponse.json(
+        {
+          error: "Decisions can only be made during the Decisions round",
+          message: `Room is currently in the ${room.currentRound} round`,
+        },
+        { status: 409 }
+      ),
+      identity
+    );
+  }
+
+  const targetOffer = existing.offerId ? existing.offer : null;
+  const targetDesire = existing.desireId ? existing.desire : null;
+  const ownerMembershipId = targetOffer?.authorMembershipId ?? targetDesire?.authorMembershipId ?? null;
+
+  if (!ownerMembershipId) {
+    return withIdentityCookie(
+      NextResponse.json({ error: "Claim target not found" }, { status: 404 }),
+      identity
+    );
+  }
+
+  if (ownerMembershipId !== membership.id) {
+    return withIdentityCookie(
+      NextResponse.json(
+        { error: "Only the item owner can decide this claim" },
+        { status: 403 }
+      ),
+      identity
+    );
+  }
+
+  const updated = await updateClaimStatus(claimId, requestedStatus);
   const summary = toClaimSummary(updated);
 
   emitRoomEvent(room.id, {
@@ -308,7 +385,35 @@ export async function PATCH(
     claim: summary,
   });
 
-  return NextResponse.json(summary);
+  if (requestedStatus === "ACCEPTED") {
+    if (targetOffer) {
+      const updatedOffer = await prisma.offer.update({
+        where: { id: targetOffer.id },
+        data: { status: "FULFILLED" },
+      });
+
+      emitRoomEvent(room.id, {
+        type: "offer:updated",
+        roomId: room.id,
+        offer: toOfferSummary(updatedOffer),
+      });
+    }
+
+    if (targetDesire) {
+      const updatedDesire = await prisma.desire.update({
+        where: { id: targetDesire.id },
+        data: { status: "FULFILLED" },
+      });
+
+      emitRoomEvent(room.id, {
+        type: "desire:updated",
+        roomId: room.id,
+        desire: toDesireSummary(updatedDesire),
+      });
+    }
+  }
+
+  return withIdentityCookie(NextResponse.json(summary), identity);
 }
 
 

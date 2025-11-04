@@ -11,6 +11,7 @@ import { getRoundInfo, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
 const OFFERS_INDEX = ROOM_ROUND_SEQUENCE.indexOf("OFFERS");
 const DESIRES_INDEX = ROOM_ROUND_SEQUENCE.indexOf("DESIRES");
 const CONNECTIONS_INDEX = ROOM_ROUND_SEQUENCE.indexOf("CONNECTIONS");
+const DECISIONS_INDEX = ROOM_ROUND_SEQUENCE.indexOf("DECISIONS");
 
 type NavLink = {
   href: string;
@@ -23,6 +24,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "offers", label: "My Offers", minRoundIndex: OFFERS_INDEX },
   { href: "desires", label: "My Desires", minRoundIndex: DESIRES_INDEX },
   { href: "connections", label: "Connections", minRoundIndex: CONNECTIONS_INDEX },
+  { href: "decisions", label: "Decisions", minRoundIndex: DECISIONS_INDEX },
 ];
 
 export function RoomShell({ children }: { children: ReactNode }) {
@@ -59,6 +61,8 @@ export function RoomShell({ children }: { children: ReactNode }) {
         targetPath = `/rooms/${room.code}/desires`;
       } else if (room.currentRound === "CONNECTIONS") {
         targetPath = `/rooms/${room.code}/connections`;
+      } else if (room.currentRound === "DECISIONS") {
+        targetPath = `/rooms/${room.code}/decisions`;
       }
 
       if (targetPath && currentPath !== targetPath) {

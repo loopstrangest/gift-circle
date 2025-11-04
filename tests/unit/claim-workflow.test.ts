@@ -19,9 +19,11 @@ vi.mock("@/lib/prisma", () => ({
     },
     offer: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     desire: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
     claim: {
       findUnique: vi.fn(),
@@ -54,6 +56,8 @@ vi.mock("@/lib/room-claims", async () => {
 vi.mock("@/server/realtime", () => ({
   emitRoomEvent: vi.fn(),
 }));
+
+const { emitRoomEvent } = await import("@/server/realtime");
 
 function buildRequest(method: string, body?: unknown, query: string = "") {
   return new NextRequest(`http://localhost/api/rooms/ABC123/claims${query}`, {
@@ -117,7 +121,27 @@ describe("claims API routes", () => {
       authorMembershipId: "membership-2",
       status: "OPEN",
     } as never);
+    (prisma.offer.update as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "offer-1",
+      roomId: "room-1",
+      authorMembershipId: "membership-2",
+      status: "FULFILLED",
+      title: "Offer",
+      details: null,
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2025-01-01T00:10:00.000Z"),
+    } as never);
     (prisma.desire.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    (prisma.desire.update as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "desire-1",
+      roomId: "room-1",
+      authorMembershipId: "membership-2",
+      status: "FULFILLED",
+      title: "Desire",
+      details: null,
+      createdAt: new Date("2025-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2025-01-01T00:10:00.000Z"),
+    } as never);
     (prisma.claim.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "claim-1",
       roomId: "room-1",
@@ -128,6 +152,17 @@ describe("claims API routes", () => {
       note: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      offer: {
+        id: "offer-1",
+        roomId: "room-1",
+        authorMembershipId: "membership-2",
+        status: "OPEN",
+        title: "Offer",
+        details: null,
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2025-01-01T00:05:00.000Z"),
+      },
+      desire: null,
     } as never);
   });
 
@@ -243,6 +278,136 @@ describe("claims API routes", () => {
       error: expect.stringContaining("Only pending claims"),
     });
     expect(updateClaimStatus).not.toHaveBeenCalled();
+  });
+
+  it("rejects claim decisions outside the Decisions round", async () => {
+    const response = await updateClaimRoute(
+      buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
+      { params: Promise.resolve({ code: "ABC123" }) }
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      error: expect.stringContaining("Decisions can only be made"),
+    });
+    expect(updateClaimStatus).not.toHaveBeenCalledWith("claim-1", "ACCEPTED");
+  });
+
+  it("prevents non-owners from deciding claims", async () => {
+    setRoom({ round: "DECISIONS" });
+
+    const response = await updateClaimRoute(
+      buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
+      { params: Promise.resolve({ code: "ABC123" }) }
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toMatchObject({
+      error: expect.stringContaining("Only the item owner"),
+    });
+    expect(updateClaimStatus).not.toHaveBeenCalledWith("claim-1", "ACCEPTED");
+  });
+
+  it("allows owners to accept claims and updates the item", async () => {
+    setRoom({ round: "DECISIONS" });
+    (prisma.claim.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "claim-1",
+      roomId: "room-1",
+      claimerMembershipId: "membership-2",
+      offerId: "offer-1",
+      desireId: null,
+      status: "PENDING",
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      offer: {
+        id: "offer-1",
+        roomId: "room-1",
+        authorMembershipId: "membership-1",
+        status: "OPEN",
+        title: "Offer",
+        details: null,
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2025-01-01T00:05:00.000Z"),
+      },
+      desire: null,
+    } as never);
+    (updateClaimStatus as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "claim-1",
+      roomId: "room-1",
+      claimerMembershipId: "membership-2",
+      offerId: "offer-1",
+      desireId: null,
+      status: "ACCEPTED",
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const response = await updateClaimRoute(
+      buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
+      { params: Promise.resolve({ code: "ABC123" }) }
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateClaimStatus).toHaveBeenCalledWith("claim-1", "ACCEPTED");
+    expect(prisma.offer.update).toHaveBeenCalledWith({
+      where: { id: "offer-1" },
+      data: { status: "FULFILLED" },
+    });
+    const payload = await response.json();
+    expect(payload).toMatchObject({ status: "ACCEPTED" });
+    expect(emitRoomEvent).toHaveBeenCalledWith("room-1", expect.objectContaining({
+      type: "offer:updated",
+    }));
+  });
+
+  it("allows owners to decline claims without updating the item", async () => {
+    setRoom({ round: "DECISIONS" });
+    (prisma.claim.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "claim-1",
+      roomId: "room-1",
+      claimerMembershipId: "membership-2",
+      offerId: null,
+      desireId: "desire-1",
+      status: "PENDING",
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      offer: null,
+      desire: {
+        id: "desire-1",
+        roomId: "room-1",
+        authorMembershipId: "membership-1",
+        status: "OPEN",
+        title: "Help",
+        details: null,
+        createdAt: new Date("2025-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2025-01-01T00:05:00.000Z"),
+      },
+    } as never);
+    (updateClaimStatus as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "claim-1",
+      roomId: "room-1",
+      claimerMembershipId: "membership-2",
+      offerId: null,
+      desireId: "desire-1",
+      status: "DECLINED",
+      note: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const response = await updateClaimRoute(
+      buildRequest("PATCH", { status: "DECLINED" }, "?claimId=claim-1"),
+      { params: Promise.resolve({ code: "ABC123" }) }
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateClaimStatus).toHaveBeenCalledWith("claim-1", "DECLINED");
+    expect(prisma.desire.update).not.toHaveBeenCalled();
+    const payload = await response.json();
+    expect(payload).toMatchObject({ status: "DECLINED" });
   });
 });
 
