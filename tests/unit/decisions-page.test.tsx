@@ -272,10 +272,10 @@ describe("DecisionsPage", () => {
       expect(mockFetch).toHaveBeenCalledWith("/api/rooms/ROOM01/export", {
         headers: { Accept: "application/pdf" },
       });
-    });
 
-    expect(createObjectURLSpy).toHaveBeenCalled();
-    expect(screen.getByText(/download started/i)).toBeInTheDocument();
+      expect(createObjectURLSpy).toHaveBeenCalled();
+      expect(screen.getByText(/download started/i)).toBeInTheDocument();
+    });
   });
 });
 
