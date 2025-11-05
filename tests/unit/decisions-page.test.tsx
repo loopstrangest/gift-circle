@@ -1,6 +1,6 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 
 import type { RoomSnapshot } from "@/lib/rooms-client";
 import DecisionsPage from "@/app/rooms/[code]/decisions/page";
@@ -15,6 +15,41 @@ vi.mock("@/lib/rooms-client", () => ({
 
 const { useRoom } = await import("@/app/rooms/[code]/room-context");
 const { decideClaimApi } = await import("@/lib/rooms-client");
+
+const originalFetch = global.fetch;
+const originalCreateObjectURL = URL.createObjectURL;
+const originalRevokeObjectURL = URL.revokeObjectURL;
+let createObjectURLSpy: ReturnType<typeof vi.fn>;
+let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
+
+beforeAll(() => {
+  createObjectURLSpy = vi.fn(() => "blob:mock");
+  revokeObjectURLSpy = vi.fn();
+
+  Object.defineProperty(URL, "createObjectURL", {
+    value: createObjectURLSpy,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(URL, "revokeObjectURL", {
+    value: revokeObjectURLSpy,
+    configurable: true,
+    writable: true,
+  });
+});
+
+afterAll(() => {
+  Object.defineProperty(URL, "createObjectURL", {
+    value: originalCreateObjectURL,
+    configurable: true,
+    writable: true,
+  });
+  Object.defineProperty(URL, "revokeObjectURL", {
+    value: originalRevokeObjectURL,
+    configurable: true,
+    writable: true,
+  });
+});
 
 function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot {
   const now = new Date().toISOString();
@@ -101,6 +136,15 @@ function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot 
 describe("DecisionsPage", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(new Blob()),
+      json: () => Promise.resolve({}),
+    } as Response);
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   it("shows gating message when not in Decisions round", () => {
@@ -159,6 +203,79 @@ describe("DecisionsPage", () => {
       expect(decideClaimApi).toHaveBeenCalledWith("ROOM01", "claim-1", "DECLINED");
     });
     expect(refresh).toHaveBeenCalled();
+  });
+
+  it("shows the commitments download button in the Decisions round", () => {
+    useRoom.mockReturnValue({
+      room: buildRoomSnapshot(),
+      membershipId: "membership-1",
+      refresh: vi.fn(),
+      isLoading: false,
+      error: undefined,
+    });
+
+    render(<DecisionsPage />);
+
+    const button = screen.getByRole("button", { name: /download my commitments/i });
+    expect(button).toBeDisabled();
+  });
+
+  it("triggers PDF download workflow", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      blob: () => Promise.resolve(new Blob(["test"], { type: "application/pdf" })),
+      json: () => Promise.resolve({}),
+    } as Response);
+    global.fetch = mockFetch;
+
+    useRoom.mockReturnValue({
+      room: buildRoomSnapshot({
+        claims: [
+          {
+            id: "claim-accepted",
+            roomId: "room-1",
+            claimerMembershipId: "membership-2",
+            offerId: "offer-1",
+            desireId: null,
+            status: "ACCEPTED",
+            note: "Thank you",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        offers: [
+          {
+            id: "offer-1",
+            roomId: "room-1",
+            authorMembershipId: "membership-1",
+            title: "Offer",
+            details: "Details",
+            status: "FULFILLED",
+            updatedAt: new Date().toISOString(),
+          },
+        ],
+        desires: [],
+      }),
+      membershipId: "membership-1",
+      refresh: vi.fn(),
+      isLoading: false,
+      error: undefined,
+    });
+
+    render(<DecisionsPage />);
+
+    const button = screen.getByRole("button", { name: /download my commitments/i });
+    expect(button).not.toBeDisabled();
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/api/rooms/ROOM01/export", {
+        headers: { Accept: "application/pdf" },
+      });
+    });
+
+    expect(createObjectURLSpy).toHaveBeenCalled();
+    expect(screen.getByText(/download started/i)).toBeInTheDocument();
   });
 });
 

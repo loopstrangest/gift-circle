@@ -6,7 +6,7 @@ A host makes a room which is a session that anyone else can join when they enter
 
 Users can look through everyone's offers and desires and make claims to receive others' offers and give others' their desires, and the original writer of any offer or desire can accept or decline these claims. Offers and desires could be fulfilled by zero or one or many people.
 
-Users can view anyone's profile to see all their offers and desires and their current status regarding claims and accepted and denied claims. Users should be able to edit or delete their offers and desires. Users can export the gift circle data - particularly the status of their offers and desires and offers and desires from others that they will fulfill - to a PDF.
+Users can view anyone's profile to see all their offers and desires and their current status regarding claims and accepted and denied claims. Users should be able to edit or delete their offers and desires. Users can export the gift circle data - particularly the status of their offers and desires and offers and desires from others that they will fulfill - to a PDF. PDF export is only available once the room reaches the Decisions round, and any participant can download a report of their accepted exchanges (where they are the confirmed giver or receiver) at any time during that round.
 
 Any user has four relevant categories of information:
 Their own desires that others may claim to fulfill.

@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { decideClaimApi, type ClaimSummary } from "@/lib/rooms-client";
 import { useRoom } from "@/app/rooms/[code]/room-context";
+import { buildCommitmentPreview } from "@/lib/room-commitments";
 
 type ActionState =
   | { status: "idle" }
   | { status: "updating"; claimId: string; decision: "ACCEPTED" | "DECLINED" };
+
+type PdfState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success" }
+  | { status: "error"; message: string };
 
 const STATUS_LABELS: Record<ClaimSummary["status"], string> = {
   PENDING: "Pending",
@@ -20,8 +27,26 @@ export default function DecisionsPage() {
   const { room, membershipId, refresh } = useRoom();
   const [actionState, setActionState] = useState<ActionState>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
+  const [pdfState, setPdfState] = useState<PdfState>({ status: "idle" });
 
   const isDecisionsRound = room.currentRound === "DECISIONS";
+
+  const commitmentPreview = useMemo(() => buildCommitmentPreview(room), [room]);
+  const viewerCommitments = useMemo(() => {
+    if (!membershipId) {
+      return null;
+    }
+    return commitmentPreview.get(membershipId) ?? null;
+  }, [commitmentPreview, membershipId]);
+
+  const hasAcceptedCommitment = useMemo(() => {
+    if (!viewerCommitments) {
+      return false;
+    }
+    return (
+      viewerCommitments.giving.length > 0 || viewerCommitments.receiving.length > 0
+    );
+  }, [viewerCommitments]);
 
   const getMemberDisplayName = useCallback(
     (memberId: string) => {
@@ -126,6 +151,59 @@ export default function DecisionsPage() {
     [actionState]
   );
 
+  const handleDownloadPdf = useCallback(async () => {
+    if (!membershipId || pdfState.status === "loading" || !hasAcceptedCommitment) {
+      return;
+    }
+
+    setPdfState({ status: "loading" });
+
+    try {
+      const response = await fetch(`/api/rooms/${room.code}/export`, {
+        headers: {
+          Accept: "application/pdf",
+        },
+      });
+
+      if (!response.ok) {
+        const payload = await response
+          .json()
+          .catch(() => ({ message: "Failed to generate PDF." }));
+        const message =
+          (payload as { message?: string; error?: string }).message ??
+          (payload as { error?: string }).error ??
+          "Failed to generate PDF.";
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = `gift-circle-${room.code}-${membershipId}.pdf`;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setPdfState({ status: "success" });
+    } catch (err) {
+      const message = (err as Error)?.message ?? "Failed to generate PDF.";
+      setPdfState({ status: "error", message });
+    }
+  }, [membershipId, pdfState.status, room.code, hasAcceptedCommitment]);
+
+  useEffect(() => {
+    if (pdfState.status === "success" || pdfState.status === "error") {
+      const timer = window.setTimeout(() => {
+        setPdfState({ status: "idle" });
+      }, 4000);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [pdfState.status]);
+
   const renderClaims = (claims: ClaimSummary[]) => {
     if (claims.length === 0) {
       return <p className="text-sm text-slate-500">No requests for this entry.</p>;
@@ -188,20 +266,53 @@ export default function DecisionsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header className="card p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
             <h1 className="text-2xl font-semibold text-slate-900">Decisions</h1>
             <p className="mt-3 text-sm text-slate-600">
-              Review incoming requests and accept or decline them to wrap up the circle.
+              Accept or decline your incoming requests.
             </p>
           </div>
-          {isDecisionsRound ? (
-            <div className="rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700">
-              {pendingDecisionCount === 0
-                ? "All decisions are up to date."
-                : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}.`}
-            </div>
-          ) : null}
+          <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
+            {isDecisionsRound ? (
+              <div className="rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700">
+                {pendingDecisionCount === 0
+                  ? "All decisions are up to date."
+                  : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}.`}
+              </div>
+            ) : null}
+            {isDecisionsRound && membershipId ? (
+              <div className="flex flex-col items-start gap-1 md:items-end">
+                <button
+                  type="button"
+                  className={`btn-secondary text-xs ${
+                    !hasAcceptedCommitment || pdfState.status === "loading"
+                      ? "cursor-not-allowed opacity-50"
+                      : ""
+                  }`}
+                  onClick={handleDownloadPdf}
+                  disabled={
+                    pdfState.status === "loading" || !hasAcceptedCommitment
+                  }
+                  title={
+                    !hasAcceptedCommitment
+                      ? "Available after you have at least one accepted commitment."
+                      : undefined
+                  }
+                >
+                  {pdfState.status === "loading"
+                    ? "Preparing PDF…"
+                    : "Download my commitments"}
+                </button>
+                {pdfState.status === "success" ? (
+                  <span className="text-xs text-green-600">Download started.</span>
+                ) : null}
+                {pdfState.status === "error" ? (
+                  <span className="text-xs text-red-600">{pdfState.message}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
         {!isDecisionsRound ? (
           <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
@@ -244,14 +355,16 @@ export default function DecisionsPage() {
                     className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                   >
                     <div className="flex flex-col gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                        {item.details ? (
-                          <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
-                            {item.details}
-                          </p>
-                        ) : null}
-                        <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                          {item.details ? (
+                            <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                              {item.details}
+                            </p>
+                          ) : null}
+                        </div>
+                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
@@ -284,14 +397,16 @@ export default function DecisionsPage() {
                     className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
                   >
                     <div className="flex flex-col gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">{item.title}</p>
-                        {item.details ? (
-                          <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
-                            {item.details}
-                          </p>
-                        ) : null}
-                        <span className="mt-2 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                          {item.details ? (
+                            <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                              {item.details}
+                            </p>
+                          ) : null}
+                        </div>
+                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
