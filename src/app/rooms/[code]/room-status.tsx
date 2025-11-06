@@ -164,16 +164,19 @@ function ItemList({
   getAuthorName,
   authorLabel,
 }: ItemListProps) {
+  const headingId = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-heading`;
   return (
-    <section className="card p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
-        {controls ?? null}
+    <section className="section-card space-y-4" aria-labelledby={headingId}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 id={headingId} className="section-heading">
+          {title}
+        </h2>
+        {controls ? <div className="flex items-center gap-2 text-xs text-slate-500">{controls}</div> : null}
       </div>
       {items.length === 0 ? (
-        <p className="mt-3 text-sm text-slate-500">{emptyLabel}</p>
+        <div className="empty-state">{emptyLabel}</div>
       ) : (
-        <ul className="mt-4 space-y-3">
+        <ul className="space-y-4">
           {items.map((item) => {
             const authorName = getAuthorName
               ? getAuthorName(item.authorMembershipId)
@@ -181,25 +184,25 @@ function ItemList({
             return (
               <li
                 key={item.id}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm"
+                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-900">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <p className="truncate text-sm font-semibold text-slate-900">
                       {item.title}
                     </p>
-                    {authorName ? (
-                    <p className="mt-1 text-xs italic text-slate-500">
-                      {authorLabel ? `${authorLabel} ${authorName}` : authorName}
-                    </p>
-                    ) : null}
                     {item.details ? (
-                      <p className="mt-1 text-xs text-slate-600 line-clamp-2">
+                      <p className="text-sm text-slate-600 whitespace-pre-line">
                         {item.details}
                       </p>
                     ) : null}
+                    {authorName ? (
+                      <p className="text-xs text-slate-500">
+                        {authorLabel ? `${authorLabel}: ${authorName}` : authorName}
+                      </p>
+                    ) : null}
                   </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
                     {item.status.toLowerCase()}
                   </span>
                 </div>
@@ -288,6 +291,7 @@ export default function RoomStatus() {
 
   const commitmentPreview = useMemo(() => buildCommitmentPreview(room), [room]);
   const showCommitments = room.currentRound === "DECISIONS";
+  const showSecondaryColumn = offersEnabled || desiresEnabled;
 
   const isViewingHostControls = isHost && hostMembershipId === membershipId;
 
@@ -308,11 +312,11 @@ export default function RoomStatus() {
   };
 
   const sortSelectClass =
-    "rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700";
+    "rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500";
 
   const offerSortControls = (
-    <label className="flex items-center gap-2 text-xs text-slate-500">
-      Sort by
+    <label className="flex items-center gap-2 text-xs">
+      <span className="text-slate-500">Sort by</span>
       <select
         className={sortSelectClass}
         value={offerSort}
@@ -325,8 +329,8 @@ export default function RoomStatus() {
   );
 
   const desireSortControls = (
-    <label className="flex items-center gap-2 text-xs text-slate-500">
-      Sort by
+    <label className="flex items-center gap-2 text-xs">
+      <span className="text-slate-500">Sort by</span>
       <select
         className={sortSelectClass}
         value={desireSort}
@@ -338,13 +342,41 @@ export default function RoomStatus() {
     </label>
   );
 
+  const participantSection = (
+    <section
+      className="section-card space-y-4"
+      aria-labelledby="participants-heading"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 id="participants-heading" className="section-heading">
+          Participants
+        </h2>
+        <span className="text-xs text-slate-500" aria-live="polite">
+          {visibleMembers.length} member{visibleMembers.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <MemberList
+        members={visibleMembers}
+        currentMembershipId={membershipId}
+        commitments={commitmentPreview}
+        showCommitments={showCommitments}
+        resolveDisplayName={getMemberDisplayName}
+      />
+    </section>
+  );
+
   return (
-    <section className="flex flex-col gap-6">
+    <section className="space-y-6">
       {room.canAdvance && isViewingHostControls ? (
-        <section className="card flex flex-col gap-4 p-6">
+        <section
+          className="section-card space-y-4"
+          aria-labelledby="host-controls-heading"
+        >
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Host Controls</h2>
-            <p className="text-sm text-slate-600">
+            <h2 id="host-controls-heading" className="section-heading">
+              Host Controls
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
               Advance the circle when everyone is ready for the next step.
             </p>
           </div>
@@ -353,44 +385,66 @@ export default function RoomStatus() {
             className="btn-primary inline-flex items-center gap-2 self-start"
             onClick={handleAdvanceRound}
             disabled={isAdvancing || !room.nextRound}
+            aria-live="polite"
           >
             {isAdvancing ? "Advancing…" : getAdvanceLabel(room.nextRound)}
           </button>
         </section>
       ) : null}
 
-      <section className="card p-6">
-        <h2 className="text-xl font-semibold text-slate-900">Participants</h2>
-        <MemberList
-          members={visibleMembers}
-          currentMembershipId={membershipId}
-          commitments={commitmentPreview}
-          showCommitments={showCommitments}
-          resolveDisplayName={getMemberDisplayName}
-        />
-      </section>
+      {showSecondaryColumn ? (
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)] lg:items-start">
+          {participantSection}
+          <div className="space-y-6">
+            {offersEnabled ? (
+              <ItemList
+                title="Offers"
+                items={sortedOffers}
+                emptyLabel="None."
+                controls={offerSortControls}
+                getAuthorName={getMemberDisplayName}
+                authorLabel="From"
+              />
+            ) : null}
 
-      {offersEnabled ? (
-        <ItemList
-          title="Offers"
-          items={sortedOffers}
-          emptyLabel="No offers have been shared yet."
-          controls={offerSortControls}
-          getAuthorName={getMemberDisplayName}
-          authorLabel="From:"
-        />
-      ) : null}
+            {desiresEnabled ? (
+              <ItemList
+                title="Desires"
+                items={sortedDesires}
+                emptyLabel="None."
+                controls={desireSortControls}
+                getAuthorName={getMemberDisplayName}
+                authorLabel="For"
+              />
+            ) : null}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {participantSection}
+          {offersEnabled ? (
+            <ItemList
+              title="Offers"
+              items={sortedOffers}
+              emptyLabel="None."
+              controls={offerSortControls}
+              getAuthorName={getMemberDisplayName}
+              authorLabel="From"
+            />
+          ) : null}
 
-      {desiresEnabled ? (
-        <ItemList
-          title="Desires"
-          items={sortedDesires}
-          emptyLabel="No desires have been shared yet."
-          controls={desireSortControls}
-          getAuthorName={getMemberDisplayName}
-          authorLabel="To:"
-        />
-      ) : null}
+          {desiresEnabled ? (
+            <ItemList
+              title="Desires"
+              items={sortedDesires}
+              emptyLabel="None."
+              controls={desireSortControls}
+              getAuthorName={getMemberDisplayName}
+              authorLabel="For"
+            />
+          ) : null}
+        </div>
+      )}
     </section>
   );
 }

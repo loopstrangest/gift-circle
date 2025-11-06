@@ -46,7 +46,6 @@ export function RoomShell({ children }: { children: ReactNode }) {
     [roundIndex]
   );
 
-  const showNav = availableLinks.length > 0;
   const membershipQuery = membershipId ? `?membershipId=${membershipId}` : "";
 
   const previousRoundRef = useRef(room.currentRound);
@@ -84,18 +83,32 @@ export function RoomShell({ children }: { children: ReactNode }) {
     }
   };
 
+  const linkBaseClasses =
+    "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500";
+
   return (
-    <div className="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-6 py-10">
-      <header className="card p-6">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
-              Gift Circle
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-semibold text-slate-900">
-                Room {room.code}
-              </h1>
+    <div className="min-h-screen bg-slate-50">
+      <div className="layout-container flex min-h-screen flex-col gap-6">
+        <header className="section-card space-y-6" role="banner">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+                  Gift Circle
+                </p>
+                <h1 className="text-3xl font-semibold text-slate-900">Room {room.code}</h1>
+              </div>
+              <div className="space-y-1 text-sm text-slate-600">
+                <p>
+                  Current round:{" "}
+                  <span className="font-medium text-slate-900">{roundInfo.title}</span>
+                </p>
+                {roundInfo.guidance ? (
+                  <p className="max-w-xl text-slate-500">{roundInfo.guidance}</p>
+                ) : null}
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
               <button
                 type="button"
                 className="btn-secondary"
@@ -105,42 +118,43 @@ export function RoomShell({ children }: { children: ReactNode }) {
                 {isCopying ? "Copied!" : "Copy room code"}
               </button>
             </div>
-            <div className="mt-4 space-y-2 text-sm text-slate-600">
-              <p>
-                Current round:{" "}
-                <span className="font-medium text-slate-900">{roundInfo.title}</span>
-              </p>
-            </div>
           </div>
-          {showNav ? (
-            <nav className="flex w-full flex-wrap justify-center gap-2 md:w-auto md:justify-start">
-              {availableLinks.map((entry) => {
-                const targetPath =
-                  entry.href.length > 0
-                    ? `/rooms/${room.code}/${entry.href}`
-                    : `/rooms/${room.code}`;
-                const isActive = currentPath === targetPath;
 
-                return (
-                  <Link
-                    key={entry.href || "overview"}
-                    href={`${targetPath}${membershipQuery}`}
-                    className={`rounded-md px-3 py-2 text-sm font-medium transition ${
-                      isActive
-                        ? "bg-indigo-100 text-indigo-700"
-                        : "text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {entry.label}
-                  </Link>
-                );
-              })}
+          {availableLinks.length > 0 ? (
+            <nav aria-label="Room navigation" className="-mx-2 overflow-x-auto pb-2 md:mx-0 md:pb-0">
+              <div className="flex w-max items-center gap-2 px-2 md:w-full md:flex-wrap md:px-0">
+                {availableLinks.map((entry) => {
+                  const targetPath =
+                    entry.href.length > 0
+                      ? `/rooms/${room.code}/${entry.href}`
+                      : `/rooms/${room.code}`;
+                  const href = `${targetPath}${membershipQuery}`;
+                  const isActive = currentPath === targetPath;
+                  const activeClasses = "bg-indigo-600 text-white shadow-sm";
+                  const inactiveClasses = "text-slate-600 hover:bg-slate-100";
+
+                  return (
+                    <Link
+                      key={entry.href || "overview"}
+                      href={href}
+                      className={`${linkBaseClasses} ${
+                        isActive ? activeClasses : inactiveClasses
+                      }`}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      {entry.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
           ) : null}
-        </div>
-      </header>
+        </header>
 
-      <div className="flex-1 pb-12">{children}</div>
+        <main className="flex-1 pb-12">
+          <div className="space-y-6">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

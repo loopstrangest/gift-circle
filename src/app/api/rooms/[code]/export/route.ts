@@ -88,7 +88,6 @@ export async function GET(
   const commitments = await collectMemberCommitments(room.id, membership.id);
 
   const pdfBuffer = await renderMemberSummaryPdf({
-    room,
     member: membership,
     commitments,
     generatedAt: new Date(),

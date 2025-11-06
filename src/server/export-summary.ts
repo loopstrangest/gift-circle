@@ -4,7 +4,7 @@ import path from "node:path";
 import { createRequire } from "node:module";
 
 import { prisma } from "@/lib/prisma";
-import type { Prisma, PrismaClient, Room, User } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 
 type MembershipWithUser = Prisma.RoomMembershipGetPayload<{
   include: { user: true };
@@ -51,41 +51,35 @@ export type MemberCommitments = {
 const require = createRequire(import.meta.url);
 const PDFKIT_PACKAGE_PATH = require.resolve("pdfkit/package.json");
 const PDFKIT_DIR = path.dirname(PDFKIT_PACKAGE_PATH);
-const STANDARD_FONT_SOURCE_DIR = path.join(PDFKIT_DIR, "js", "data");
-const STANDARD_FONT_TARGET_DIR = path.join(
-  process.cwd(),
-  ".next/server/vendor-chunks/data"
-);
+const PDFKIT_DATA_DIR = path.join(PDFKIT_DIR, "js", "data");
+const TARGET_FONT_DIR = path.join(process.cwd(), ".next/server/vendor-chunks/data");
 
-let ensureStandardFontsPromise: Promise<void> | null = null;
+let fontsReady: Promise<void> | null = null;
 
 async function ensureStandardFontsAvailable() {
-  if (!ensureStandardFontsPromise) {
-    ensureStandardFontsPromise = (async () => {
+  if (!fontsReady) {
+    fontsReady = (async () => {
       try {
-        await fs.access(path.join(STANDARD_FONT_TARGET_DIR, "Helvetica.afm"));
-        return;
-      } catch {
-        try {
-          await fs.mkdir(STANDARD_FONT_TARGET_DIR, { recursive: true });
-          const files = await fs.readdir(STANDARD_FONT_SOURCE_DIR);
-          await Promise.all(
-            files
-              .filter((file) => file.endsWith(".afm"))
-              .map((file) =>
-                fs.copyFile(
-                  path.join(STANDARD_FONT_SOURCE_DIR, file),
-                  path.join(STANDARD_FONT_TARGET_DIR, file)
-                )
-              )
-          );
-        } catch (copyError) {
-          console.warn("Failed to mirror PDF standard fonts", copyError);
-        }
+        await fs.mkdir(TARGET_FONT_DIR, { recursive: true });
+        const entries = await fs.readdir(PDFKIT_DATA_DIR);
+        await Promise.all(
+          entries
+            .filter((entry) => entry.endsWith(".afm"))
+            .map(async (entry) => {
+              const destination = path.join(TARGET_FONT_DIR, entry);
+              try {
+                await fs.access(destination);
+              } catch {
+                await fs.copyFile(path.join(PDFKIT_DATA_DIR, entry), destination);
+              }
+            })
+        );
+      } catch (error) {
+        console.warn("Unable to mirror PDFKit standard fonts", error);
       }
     })();
   }
-  return ensureStandardFontsPromise;
+  return fontsReady;
 }
 
 function getClient(client?: PrismaClient) {
@@ -102,13 +96,6 @@ function formatMemberDisplayName(member: MembershipWithUser) {
     return name;
   }
   return member.role === "HOST" ? "Host" : "Participant";
-}
-
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value);
 }
 
 function formatDate(value: Date) {
@@ -258,17 +245,16 @@ export async function collectMemberCommitments(
 }
 
 export async function renderMemberSummaryPdf({
-  room,
   member,
   commitments,
   generatedAt,
 }: {
-  room: Room & { host: User };
   member: MembershipWithUser;
   commitments: MemberCommitments;
   generatedAt: Date;
 }): Promise<Buffer> {
   await ensureStandardFontsAvailable();
+
   const doc = new PDFDocument({ margin: 48, size: "LETTER" });
   const chunks: Buffer[] = [];
 
@@ -297,6 +283,7 @@ export async function renderMemberSummaryPdf({
 
   if (commitments.giving.length === 0 && commitments.receiving.length === 0) {
     doc
+      .font("Helvetica")
       .fontSize(12)
       .text(
         "No accepted commitments are recorded for this participant during the Decisions round.",
@@ -321,25 +308,14 @@ export async function renderMemberSummaryPdf({
         doc.font("Helvetica-Bold").fontSize(12).text(entry.itemTitle);
 
         if (entry.itemDetails) {
-          doc
-            .font("Helvetica")
-            .fontSize(11)
-            .fillColor("#4b5563")
-            .text(entry.itemDetails);
+          doc.font("Helvetica").fontSize(11).fillColor("#4b5563").text(entry.itemDetails);
           doc.fillColor("black");
         }
 
-        doc
-          .font("Helvetica")
-          .fontSize(11)
-          .text(`${counterpartPrefix}: ${entry.counterpartName}`);
+        doc.font("Helvetica").fontSize(11).text(`${counterpartPrefix}: ${entry.counterpartName}`);
 
         if (entry.note) {
-          doc
-            .font("Helvetica")
-            .fontSize(11)
-            .fillColor("#4b5563")
-            .text(`Note: ${entry.note}`);
+          doc.font("Helvetica").fontSize(11).fillColor("#4b5563").text(`Note: ${entry.note}`);
           doc.fillColor("black");
         }
 

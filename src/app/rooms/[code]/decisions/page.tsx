@@ -113,9 +113,12 @@ export default function DecisionsPage() {
         return false;
       }
       return (
-        (claim.offerId && room.offers.find((offer) => offer.id === claim.offerId)?.authorMembershipId === membershipId) ||
+        (claim.offerId &&
+          room.offers.find((offer) => offer.id === claim.offerId)?.authorMembershipId ===
+            membershipId) ||
         (claim.desireId &&
-          room.desires.find((desire) => desire.id === claim.desireId)?.authorMembershipId === membershipId)
+          room.desires.find((desire) => desire.id === claim.desireId)?.authorMembershipId ===
+            membershipId)
       );
     }).length;
   }, [membershipId, room.claims, room.desires, room.offers]);
@@ -264,14 +267,12 @@ export default function DecisionsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="card p-6">
+    <div className="space-y-6">
+      <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="max-w-2xl">
-            <h1 className="text-2xl font-semibold text-slate-900">Decisions</h1>
-            <p className="mt-3 text-sm text-slate-600">
-              Accept or decline your incoming requests.
-            </p>
+          <div className="max-w-2xl space-y-3">
+            <h1 className="text-3xl font-semibold text-slate-900">Decisions</h1>
+            <p className="text-sm text-slate-600">Accept or decline your incoming requests.</p>
           </div>
           <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
             {isDecisionsRound ? (
@@ -315,44 +316,47 @@ export default function DecisionsPage() {
           </div>
         </div>
         {!isDecisionsRound ? (
-          <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
             Decisions will be available once the host advances the room to the Decisions round.
           </p>
         ) : null}
         {!membershipId ? (
-          <p className="mt-4 rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+          <p className="rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
             Join the room to manage requests made on your offers and desires.
           </p>
         ) : null}
       </header>
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {error}
-        </p>
+        </div>
       ) : null}
 
       {isDecisionsRound && membershipId ? (
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="card p-6">
+          <section className="section-card space-y-4" aria-labelledby="offers-awaiting-heading">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-slate-900">Offers awaiting decisions</h2>
+              <h2 id="offers-awaiting-heading" className="section-heading">
+                Offers awaiting decisions
+              </h2>
               <span className="text-xs text-slate-500">
                 {offerTargets.length === 0
-                  ? "No requests on your offers."
+                  ? "None."
                   : `${offerTargets.length} offer${offerTargets.length === 1 ? "" : "s"} with requests.`}
               </span>
             </div>
             {offerTargets.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-500">
-                Once others request your offers, they will appear here for review.
-              </p>
+              <div className="empty-state">None.</div>
             ) : (
-              <ul className="mt-5 space-y-4">
+              <ul className="space-y-4">
                 {offerTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -376,25 +380,25 @@ export default function DecisionsPage() {
             )}
           </section>
 
-          <section className="card p-6">
+          <section className="section-card space-y-4" aria-labelledby="desires-awaiting-heading">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold text-slate-900">Desires awaiting decisions</h2>
+              <h2 id="desires-awaiting-heading" className="section-heading">
+                Desires awaiting decisions
+              </h2>
               <span className="text-xs text-slate-500">
                 {desireTargets.length === 0
-                  ? "No requests on your desires."
+                  ? "None."
                   : `${desireTargets.length} desire${desireTargets.length === 1 ? "" : "s"} with requests.`}
               </span>
             </div>
             {desireTargets.length === 0 ? (
-              <p className="mt-4 text-sm text-slate-500">
-                Any offers to fulfill your desires will show up here for approval.
-              </p>
+              <div className="empty-state">None.</div>
             ) : (
-              <ul className="mt-5 space-y-4">
+              <ul className="space-y-4">
                 {desireTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">

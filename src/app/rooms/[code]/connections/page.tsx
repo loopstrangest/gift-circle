@@ -82,9 +82,7 @@ export default function ConnectionsPage() {
     return room.claims
       .filter((claim) => claim.claimerMembershipId === membershipId)
       .slice()
-      .sort(
-        (a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-      );
+      .sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
   }, [room.claims, membershipId]);
 
   const myPendingTargets = useMemo(() => {
@@ -157,25 +155,21 @@ export default function ConnectionsPage() {
     }
 
     return (
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {claims.map((claim) => {
           const authorName = getMemberDisplayName(claim.claimerMembershipId);
           return (
             <li
               key={claim.id}
-              className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2"
+              className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white/60 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-slate-700">
-                  {authorName}
-                </p>
+                <p className="truncate text-xs font-medium text-slate-700">{authorName}</p>
                 {claim.note ? (
-                  <p className="mt-1 text-xs text-slate-500 line-clamp-2">
-                    {claim.note}
-                  </p>
+                  <p className="text-xs text-slate-500 line-clamp-2">{claim.note}</p>
                 ) : null}
               </div>
-              <span className="ml-3 shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold capitalize text-slate-600">
+              <span className="inline-flex shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold capitalize text-slate-600">
                 {STATUS_LABELS[claim.status] ?? claim.status.toLowerCase()}
               </span>
             </li>
@@ -226,22 +220,20 @@ export default function ConnectionsPage() {
     return (
       <li
         key={offer.id}
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1 space-y-2">
               <p className="text-sm font-semibold text-slate-900">{offer.title}</p>
               {offer.details ? (
-                <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
-                  {offer.details}
-                </p>
+                <p className="text-sm text-slate-600 whitespace-pre-line">{offer.details}</p>
               ) : null}
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="text-xs text-slate-500">
                 From {getMemberDisplayName(offer.authorMembershipId)}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
               <button
                 type="button"
                 className="btn-primary text-xs"
@@ -292,22 +284,20 @@ export default function ConnectionsPage() {
     return (
       <li
         key={desire.id}
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
       >
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1 space-y-2">
               <p className="text-sm font-semibold text-slate-900">{desire.title}</p>
               {desire.details ? (
-                <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
-                  {desire.details}
-                </p>
+                <p className="text-sm text-slate-600 whitespace-pre-line">{desire.details}</p>
               ) : null}
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="text-xs text-slate-500">
                 For {getMemberDisplayName(desire.authorMembershipId)}
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
               <button
                 type="button"
                 className="btn-primary text-xs"
@@ -341,78 +331,88 @@ export default function ConnectionsPage() {
     actionState.status === "withdrawing" ? actionState.claimId : null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="card p-6">
-        <h1 className="text-2xl font-semibold text-slate-900">Connections</h1>
-        <p className="mt-3 text-sm text-slate-600">
+    <div className="space-y-6">
+      <header className="section-card space-y-4" role="banner">
+        <div className="space-y-3">
+          <h1 className="text-3xl font-semibold text-slate-900">Connections</h1>
+          <p className="text-sm text-slate-600">
           Reach out to receive offers or fulfill desires. Everyone will see new requests
           in real time.
         </p>
+        </div>
       </header>
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {error}
-        </p>
+        </div>
       ) : null}
 
-      {/* success messages intentionally suppressed per request */}
-
       {!isConnectionsRound ? (
-        <section className="card p-6">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Waiting for Connections
-          </h2>
-          <p className="mt-2 text-sm text-slate-600">
-            Claim requests are only available while the room is in the Connections
-            round. Check back once the host advances the session.
+        <section className="section-card space-y-2">
+          <h2 className="section-heading">Waiting for Connections</h2>
+          <p className="text-sm text-slate-600">
+            Claim requests are only available while the room is in the Connections round.
+            Check back once the host advances the session.
           </p>
         </section>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
           <div className="space-y-6">
-            <section className="card p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-slate-900">Open Offers</h2>
+            <section className="section-card space-y-4" aria-labelledby="open-offers-heading">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 id="open-offers-heading" className="section-heading">
+                  Open Offers
+                </h2>
                 <p className="text-xs text-slate-500">
-                  Request to receive others&#39; offers.
+                  Request to receive others&apos; offers.
                 </p>
               </div>
               {offerCards.length === 0 ? (
-                <p className="mt-4 text-sm text-slate-500">
-                  No offers have been posted yet.
-                </p>
+                <div className="empty-state">
+                  No offers have been posted yet. Hosts can encourage participants to add what
+                  they&apos;re willing to share.
+                </div>
               ) : (
-                <ul className="mt-5 space-y-4">{offerCards}</ul>
+                <ul className="space-y-4">{offerCards}</ul>
               )}
             </section>
 
-            <section className="card p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-slate-900">Open Desires</h2>
+            <section className="section-card space-y-4" aria-labelledby="open-desires-heading">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 id="open-desires-heading" className="section-heading">
+                  Open Desires
+                </h2>
                 <p className="text-xs text-slate-500">
-                  Request to fulfill others&#39; desires.
+                  Request to fulfill others&apos; desires.
                 </p>
               </div>
               {desireCards.length === 0 ? (
-                <p className="mt-4 text-sm text-slate-500">
-                  No desires have been posted yet.
-                </p>
+                <div className="empty-state">
+                  No desires have been shared yet. Invite participants to add what support they
+                  need.
+                </div>
               ) : (
-                <ul className="mt-5 space-y-4">{desireCards}</ul>
+                <ul className="space-y-4">{desireCards}</ul>
               )}
             </section>
           </div>
 
           <aside className="space-y-6">
-            <section className="card p-6">
-              <h2 className="text-lg font-semibold text-slate-900">My Activity</h2>
+            <section className="section-card space-y-4" aria-labelledby="my-activity-heading">
+              <h2 id="my-activity-heading" className="section-heading">
+                My Activity
+              </h2>
               {myClaims.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-500">
-                  You haven’t sent any requests yet.
-                </p>
+                <div className="empty-state">
+                  You haven’t sent any requests yet. Explore offers and desires to start a
+                  connection.
+                </div>
               ) : (
-                <ul className="mt-4 space-y-3">
+                <ul className="space-y-3">
                   {myClaims.map((claim) => {
                     const isOffer = Boolean(claim.offerId);
                     const target = isOffer
@@ -437,8 +437,7 @@ export default function ConnectionsPage() {
                         key={claim.id}
                         className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
                       >
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between gap-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <p className="text-sm text-slate-700">
                               <span className="font-semibold">{description}</span>{" "}
                               <em className="font-semibold italic text-slate-900">
@@ -453,17 +452,13 @@ export default function ConnectionsPage() {
                               onClick={() => handleWithdrawClaim(claim)}
                               disabled={withdrawingClaimId === claim.id}
                             >
-                              {withdrawingClaimId === claim.id
-                                ? "Withdrawing…"
-                                : "Withdraw"}
+                              {withdrawingClaimId === claim.id ? "Withdrawing…" : "Withdraw"}
                             </button>
                           ) : (
-                            <span className="shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold capitalize text-slate-600">
-                              {STATUS_LABELS[claim.status] ??
-                                claim.status.toLowerCase()}
+                            <span className="inline-flex shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold capitalize text-slate-600">
+                              {STATUS_LABELS[claim.status] ?? claim.status.toLowerCase()}
                             </span>
                           )}
-                          </div>
                         </div>
                       </li>
                     );

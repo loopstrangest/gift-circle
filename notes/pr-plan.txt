@@ -59,9 +59,9 @@ Pull Request Sequence
     - Generate per-user PDF summarizing owned offers/desires and commitments using a headless browser or PDF library. ✅
     - Add download entry point in room UI with progress feedback, available only while the room is in the Decisions round. ✅
     - Ensure any participant can trigger a PDF that lists their confirmed (accepted) offers and desires at any time during the Decisions round. ✅
-16. Responsive layout & polish
-    - Audit mobile/desktop breakpoints, refine layout, typography, and spacing.
-    - Address accessibility, keyboard navigation, and empty state design.
+16. Responsive layout & polish ✅
+    - Audit mobile/desktop breakpoints, refine layout, typography, and spacing. ✅
+    - Address accessibility, keyboard navigation, and empty state design. ✅
 17. Hardening & QA
     - Expand automated test coverage for critical flows; add load-test smoke for realtime layer.
     - Conduct production readiness checklist and finalize documentation for deploy.

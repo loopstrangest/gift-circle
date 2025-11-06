@@ -26,7 +26,7 @@ export function RoomItemForm({
 }: RoomItemFormProps) {
   return (
     <form
-      className="card flex flex-col gap-4 p-6"
+      className="section-card flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         if (!disabled) {

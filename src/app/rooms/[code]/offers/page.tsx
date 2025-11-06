@@ -141,12 +141,12 @@ export default function MyOffersPage() {
   const isSaving = actionState.status === "saving";
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="card p-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">My Offers</h1>
-            <p className="mt-3 text-sm text-slate-600">{roundInfo.guidance}</p>
+    <div className="space-y-6">
+      <header className="section-card space-y-4" role="banner">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold text-slate-900">My Offers</h1>
+            <p className="text-sm text-slate-600">{roundInfo.guidance}</p>
           </div>
           {canEditOffers ? (
             <button type="button" className="btn-primary" onClick={startCreate}>
@@ -155,35 +155,30 @@ export default function MyOffersPage() {
           ) : null}
         </div>
         {!canEditOffers ? (
-          <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
             You can only create and edit offers during the Offers round.
           </p>
         ) : null}
       </header>
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
           {error}
-        </p>
+        </div>
       ) : null}
 
       {canEditOffers && formMode.type !== "idle" ? (
         <RoomItemForm
-          draft={
-            formMode.type === "create"
-              ? formMode.draft
-              : formMode.type === "edit"
-                ? formMode.draft
-                : EMPTY_DRAFT
-          }
+          draft={formMode.draft}
           heading={formMode.type === "edit" ? "Edit offer" : "Add a new offer"}
           submitLabel={formMode.type === "edit" ? "Save changes" : "Publish offer"}
           onChange={(draft) => {
-            if (formMode.type === "idle") {
+            if (formMode.type === "create") {
               setFormMode({ type: "create", draft });
-            } else if (formMode.type === "create") {
-              setFormMode({ type: "create", draft });
-            } else {
+            } else if (formMode.type === "edit") {
               setFormMode({ type: "edit", offer: formMode.offer, draft });
             }
           }}
@@ -193,63 +188,73 @@ export default function MyOffersPage() {
         />
       ) : null}
 
-      <section className="card p-6">
-        <h2 className="text-lg font-semibold text-slate-900">Published Offers</h2>
+      <section className="section-card space-y-4" aria-labelledby="published-offers-heading">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="published-offers-heading" className="section-heading">
+            Published Offers
+          </h2>
+          <span className="text-xs text-slate-500">
+            {myOffers.length === 0
+              ? "No offers yet"
+              : `${myOffers.length} active ${myOffers.length === 1 ? "entry" : "entries"}`}
+          </span>
+        </div>
         {myOffers.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">
-            You haven’t added any offers yet.
-          </p>
+          <div className="empty-state">
+            You haven’t added any offers yet. Share what you can contribute to get the circle
+            started.
+          </div>
         ) : (
-          <ul className="mt-4 space-y-4">
+          <ul className="space-y-4">
             {myOffers.map((offer) => {
               const isDeleting =
                 actionState.status === "deleting" && actionState.offerId === offer.id;
               return (
                 <li
                   key={offer.id}
-                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1 space-y-2">
                       <h3 className="text-sm font-semibold text-slate-900">
                         {offer.title}
                       </h3>
                       {offer.details ? (
-                        <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                        <p className="text-sm text-slate-600 whitespace-pre-line">
                           {offer.details}
                         </p>
                       ) : null}
-                      <span className="mt-3 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
-                        {offer.status.toLowerCase()}
-                      </span>
                     </div>
-                    {canEditOffers ? (
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() =>
-                            setFormMode({
-                              type: "edit",
-                              offer,
-                              draft: createDraftFromOffer(offer),
-                            })
-                          }
-                          disabled={isSaving}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-primary bg-red-600 hover:bg-red-500 disabled:bg-red-300"
-                          onClick={() => handleDelete(offer.id)}
-                          disabled={isSaving || isDeleting}
-                        >
-                          {isDeleting ? "Deleting…" : "Delete"}
-                        </button>
-                      </div>
-                    ) : null}
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                      {offer.status.toLowerCase()}
+                    </span>
                   </div>
+                  {canEditOffers ? (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() =>
+                          setFormMode({
+                            type: "edit",
+                            offer,
+                            draft: createDraftFromOffer(offer),
+                          })
+                        }
+                        disabled={isSaving}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary bg-red-600 hover:bg-red-500 disabled:bg-red-400"
+                        onClick={() => handleDelete(offer.id)}
+                        disabled={isSaving || isDeleting}
+                      >
+                        {isDeleting ? "Deleting…" : "Delete"}
+                      </button>
+                    </div>
+                  ) : null}
                 </li>
               );
             })}
