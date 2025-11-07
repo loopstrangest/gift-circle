@@ -62,6 +62,3 @@ Pull Request Sequence
 16. Responsive layout & polish ✅
     - Audit mobile/desktop breakpoints, refine layout, typography, and spacing. ✅
     - Address accessibility, keyboard navigation, and empty state design. ✅
-17. Hardening & QA
-    - Expand automated test coverage for critical flows; add load-test smoke for realtime layer.
-    - Conduct production readiness checklist and finalize documentation for deploy.

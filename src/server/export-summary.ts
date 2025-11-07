@@ -1,5 +1,6 @@
 import PDFDocument from "pdfkit";
 import { promises as fs } from "node:fs";
+import type { Dirent } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 
@@ -49,34 +50,209 @@ export type MemberCommitments = {
 };
 
 const require = createRequire(import.meta.url);
-const PDFKIT_PACKAGE_PATH = require.resolve("pdfkit/package.json");
-const PDFKIT_DIR = path.dirname(PDFKIT_PACKAGE_PATH);
-const PDFKIT_DATA_DIR = path.join(PDFKIT_DIR, "js", "data");
-const TARGET_FONT_DIR = path.join(process.cwd(), ".next/server/vendor-chunks/data");
+const PDFKIT_DATA_DIR = path.join(
+  process.cwd(),
+  "node_modules",
+  "pdfkit",
+  "js",
+  "data"
+);
+const LOG_PREFIX = "[pdf-export]";
+const STANDARD_FONT_FILENAMES = [
+  "Courier.afm",
+  "Courier-Bold.afm",
+  "Courier-Oblique.afm",
+  "Courier-BoldOblique.afm",
+  "Helvetica.afm",
+  "Helvetica-Bold.afm",
+  "Helvetica-Oblique.afm",
+  "Helvetica-BoldOblique.afm",
+  "Times-Roman.afm",
+  "Times-Bold.afm",
+  "Times-Italic.afm",
+  "Times-BoldItalic.afm",
+  "Symbol.afm",
+  "ZapfDingbats.afm",
+];
+
+async function resolveFontSource(filename: string) {
+  const source = path.join(PDFKIT_DATA_DIR, filename);
+  try {
+    await fs.access(source);
+    return source;
+  } catch (error) {
+    console.warn(
+      `${LOG_PREFIX} missing standard font file`,
+      filename,
+      "at",
+      source,
+      error
+    );
+    return null;
+  }
+}
 
 let fontsReady: Promise<void> | null = null;
+let cachedFontTargets: Promise<string[]> | null = null;
+
+async function directoryExists(target: string) {
+  try {
+    const result = await fs.stat(target);
+    return result.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+async function discoverPdfkitFontTargets() {
+  if (!cachedFontTargets) {
+    cachedFontTargets = (async () => {
+      const targets = new Set<string>();
+
+      const serverRoot = path.join(process.cwd(), ".next", "server");
+
+      async function enqueueIfPdfkitChunk(dir: string) {
+        try {
+          const entries = await fs.readdir(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            if (entry.isFile() && /^pdfkit(\..+)?\.js$/i.test(entry.name)) {
+              const dataDir = path.join(dir, "data");
+              targets.add(dataDir);
+              console.log(
+                LOG_PREFIX,
+                "discovered pdfkit chunk",
+                path.join(dir, entry.name),
+                "->",
+                dataDir
+              );
+            }
+          }
+        } catch {
+          /** ignore */
+        }
+      }
+
+      async function walk(current: string) {
+        let entries: Dirent[];
+        try {
+          entries = await fs.readdir(current, { withFileTypes: true });
+        } catch {
+          return;
+        }
+
+        await enqueueIfPdfkitChunk(current);
+
+        for (const entry of entries) {
+          if (!entry.isDirectory()) {
+            continue;
+          }
+          if (entry.name === "data" || entry.name.startsWith(".")) {
+            continue;
+          }
+          await walk(path.join(current, entry.name));
+        }
+      }
+
+      if (await directoryExists(serverRoot)) {
+        await walk(serverRoot);
+      }
+
+      // Ensure we include the common vendor chunk location even if not discovered yet.
+      const vendorChunkDir = path.join(serverRoot, "vendor-chunks");
+      if (await directoryExists(vendorChunkDir)) {
+        const vendorDataDir = path.join(vendorChunkDir, "data");
+        targets.add(vendorDataDir);
+        console.log(LOG_PREFIX, "including vendor chunk data directory", vendorDataDir);
+      }
+
+      if (targets.size === 0) {
+        // Fallback so downstream logic still executes without throwing.
+        const fallback = path.join(serverRoot, "vendor-chunks", "data");
+        targets.add(fallback);
+        console.warn(
+          LOG_PREFIX,
+          "no pdfkit chunks discovered; using fallback",
+          fallback
+        );
+      }
+
+      return Array.from(targets);
+    })();
+  }
+
+  return cachedFontTargets;
+}
+
+async function mirrorFontsInto(
+  targetDir: string,
+  fonts: { filename: string; source: string }[]
+) {
+  try {
+    await fs.mkdir(targetDir, { recursive: true });
+    await Promise.all(
+      fonts.map(async ({ filename, source }) => {
+        const destination = path.join(targetDir, filename);
+        try {
+          await fs.access(destination);
+        } catch {
+          console.log(LOG_PREFIX, "copying font", source, "to", destination);
+          await fs.copyFile(source, destination);
+        }
+      })
+    );
+  } catch (error) {
+    console.warn(
+      `${LOG_PREFIX} unable to mirror PDFKit font assets into ${targetDir}`,
+      error
+    );
+  }
+}
 
 async function ensureStandardFontsAvailable() {
   if (!fontsReady) {
     fontsReady = (async () => {
-      try {
-        await fs.mkdir(TARGET_FONT_DIR, { recursive: true });
-        const entries = await fs.readdir(PDFKIT_DATA_DIR);
+      console.log(LOG_PREFIX, "ensuring standard fonts are present", {
+        pdfkitDataDir: PDFKIT_DATA_DIR,
+      });
+
+      const availableFontSources = (
         await Promise.all(
-          entries
-            .filter((entry) => entry.endsWith(".afm"))
-            .map(async (entry) => {
-              const destination = path.join(TARGET_FONT_DIR, entry);
-              try {
-                await fs.access(destination);
-              } catch {
-                await fs.copyFile(path.join(PDFKIT_DATA_DIR, entry), destination);
-              }
-            })
+          STANDARD_FONT_FILENAMES.map(async (filename) => ({
+            filename,
+            source: await resolveFontSource(filename),
+          }))
+        )
+      ).filter((entry): entry is { filename: string; source: string } => {
+        return Boolean(entry.source);
+      });
+
+      if (availableFontSources.length === 0) {
+        console.error(
+          LOG_PREFIX,
+          "No PDFKit AFM font files available; PDF export cannot proceed"
         );
-      } catch (error) {
-        console.warn("Unable to mirror PDFKit standard fonts", error);
+        return;
       }
+
+      if (availableFontSources.length !== STANDARD_FONT_FILENAMES.length) {
+        console.warn(
+          LOG_PREFIX,
+          `Only ${availableFontSources.length} of ${STANDARD_FONT_FILENAMES.length} standard fonts available`
+        );
+      }
+
+      const targets = await discoverPdfkitFontTargets();
+      console.log(
+        LOG_PREFIX,
+        "mirroring",
+        availableFontSources.length,
+        "AFM fonts to",
+        targets
+      );
+      await Promise.all(
+        targets.map((target) => mirrorFontsInto(target, availableFontSources))
+      );
+      console.log(LOG_PREFIX, "font mirroring complete");
     })();
   }
   return fontsReady;
@@ -308,14 +484,25 @@ export async function renderMemberSummaryPdf({
         doc.font("Helvetica-Bold").fontSize(12).text(entry.itemTitle);
 
         if (entry.itemDetails) {
-          doc.font("Helvetica").fontSize(11).fillColor("#4b5563").text(entry.itemDetails);
+          doc
+            .font("Helvetica")
+            .fontSize(11)
+            .fillColor("#4b5563")
+            .text(entry.itemDetails);
           doc.fillColor("black");
         }
 
-        doc.font("Helvetica").fontSize(11).text(`${counterpartPrefix}: ${entry.counterpartName}`);
+        doc
+          .font("Helvetica")
+          .fontSize(11)
+          .text(`${counterpartPrefix}: ${entry.counterpartName}`);
 
         if (entry.note) {
-          doc.font("Helvetica").fontSize(11).fillColor("#4b5563").text(`Note: ${entry.note}`);
+          doc
+            .font("Helvetica")
+            .fontSize(11)
+            .fillColor("#4b5563")
+            .text(`Note: ${entry.note}`);
           doc.fillColor("black");
         }
 
@@ -336,5 +523,3 @@ export async function renderMemberSummaryPdf({
 
   return Buffer.concat(chunks);
 }
-
-
