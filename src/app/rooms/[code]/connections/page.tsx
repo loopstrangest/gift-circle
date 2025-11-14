@@ -367,14 +367,13 @@ export default function ConnectionsPage() {
                 <h2 id="open-offers-heading" className="section-heading">
                   Open Offers
                 </h2>
-                <p className="text-xs text-slate-500">
-                  Request to receive others&apos; offers.
-                </p>
+                {offerCards.length > 0 ? (
+                  <p className="text-xs text-slate-500">Request to receive others&apos; offers.</p>
+                ) : null}
               </div>
               {offerCards.length === 0 ? (
                 <div className="empty-state">
-                  No offers have been posted yet. Hosts can encourage participants to add what
-                  they&apos;re willing to share.
+                  The other participants did not share any offers.
                 </div>
               ) : (
                 <ul className="space-y-4">{offerCards}</ul>
@@ -386,14 +385,13 @@ export default function ConnectionsPage() {
                 <h2 id="open-desires-heading" className="section-heading">
                   Open Desires
                 </h2>
-                <p className="text-xs text-slate-500">
-                  Request to fulfill others&apos; desires.
-                </p>
+                {desireCards.length > 0 ? (
+                  <p className="text-xs text-slate-500">Request to fulfill others&apos; desires.</p>
+                ) : null}
               </div>
               {desireCards.length === 0 ? (
                 <div className="empty-state">
-                  No desires have been shared yet. Invite participants to add what support they
-                  need.
+                  The other participants did not share any desires.
                 </div>
               ) : (
                 <ul className="space-y-4">{desireCards}</ul>
@@ -408,8 +406,7 @@ export default function ConnectionsPage() {
               </h2>
               {myClaims.length === 0 ? (
                 <div className="empty-state">
-                  You haven’t sent any requests yet. Explore offers and desires to start a
-                  connection.
+                  You haven&apos;t sent any requests yet.
                 </div>
               ) : (
                 <ul className="space-y-3">

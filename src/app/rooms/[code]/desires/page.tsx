@@ -193,15 +193,15 @@ export default function MyDesiresPage() {
           <h2 id="published-desires-heading" className="section-heading">
             Published Desires
           </h2>
-          <span className="text-xs text-slate-500">
-            {myDesires.length === 0
-              ? "No desires yet"
-              : `${myDesires.length} active ${myDesires.length === 1 ? "entry" : "entries"}`}
-          </span>
+          {myDesires.length > 0 ? (
+            <span className="text-xs text-slate-500">
+              {`${myDesires.length} active ${myDesires.length === 1 ? "entry" : "entries"}`}
+            </span>
+          ) : null}
         </div>
         {myDesires.length === 0 ? (
           <div className="empty-state">
-            You haven’t added any desires yet. Let others know how they can support you.
+            You haven&apos;t added any desires.
           </div>
         ) : (
           <ul className="space-y-4">

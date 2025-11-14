@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 import type { RoomMember, OfferSummary, DesireSummary } from "@/lib/rooms-client";
 import { buildCommitmentPreview } from "@/lib/room-commitments";
 import { advanceRoomRound } from "@/lib/rooms-client";
-import { getAdvanceLabel, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
+import { getAdvanceLabel, getRoundInfo, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
 import { useRoom } from "@/app/rooms/[code]/room-context";
 
 function formatJoinedAt(iso: string) {
@@ -342,6 +342,13 @@ export default function RoomStatus() {
     </label>
   );
 
+  const nextRoundTitle = useMemo(() => {
+    if (!room.nextRound) {
+      return null;
+    }
+    return getRoundInfo(room.nextRound).title;
+  }, [room.nextRound]);
+
   const participantSection = (
     <section
       className="section-card space-y-4"
@@ -377,7 +384,9 @@ export default function RoomStatus() {
               Host Controls
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Advance the circle when everyone is ready for the next step.
+              {nextRoundTitle
+                ? `Advance to the ${nextRoundTitle} Round when everyone is ready.`
+                : "Advance to the next round when everyone is ready."}
             </p>
           </div>
           <button

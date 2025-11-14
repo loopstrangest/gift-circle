@@ -26,13 +26,13 @@ const ROUND_INFO: Record<RoomRound, RoomRoundInfo> = {
     key: "OFFERS",
     title: "Offers",
     description: "Participants share what they would like to offer to the circle.",
-    guidance: "Add your offers so others can see how you can help.",
+    guidance: "Add what you want to offer to others.",
   },
   DESIRES: {
     key: "DESIRES",
     title: "Desires",
     description: "Participants share what support or items they would like to receive.",
-    guidance: "Post your desires so others know how they can contribute.",
+    guidance: "Add what you desire to receive from others.",
   },
   CONNECTIONS: {
     key: "CONNECTIONS",

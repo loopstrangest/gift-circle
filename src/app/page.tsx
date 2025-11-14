@@ -102,8 +102,7 @@ export default function HomePage() {
           Gift Circle
         </h1>
         <p className="text-base text-slate-600">
-          Create a room, invite others with a unique code, and track offers and desires
-          together.
+          Share your offers and desires, enjoy the generosity of giving and receiving.
         </p>
       </header>
 

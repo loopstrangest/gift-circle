@@ -207,7 +207,11 @@ export default function DecisionsPage() {
     return undefined;
   }, [pdfState.status]);
 
-  const renderClaims = (claims: ClaimSummary[]) => {
+  const renderClaims = (
+    claims: ClaimSummary[],
+    options: { ownerName: string; direction: "offer" | "desire" }
+  ) => {
+    const { ownerName, direction } = options;
     if (claims.length === 0) {
       return <p className="text-sm text-slate-500">No requests for this entry.</p>;
     }
@@ -217,6 +221,10 @@ export default function DecisionsPage() {
         {claims.map((claim) => {
           const claimerName = getMemberDisplayName(claim.claimerMembershipId);
           const isPending = claim.status === "PENDING";
+          const connectionText =
+            direction === "offer"
+              ? `${ownerName} → ${claimerName}`
+              : `${claimerName} → ${ownerName}`;
 
           return (
             <li
@@ -226,7 +234,7 @@ export default function DecisionsPage() {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900">{claimerName}</p>
+                    <p className="text-sm font-semibold text-slate-900">{connectionText}</p>
                     {claim.note ? (
                       <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
                         {claim.note}
@@ -278,7 +286,7 @@ export default function DecisionsPage() {
             {isDecisionsRound ? (
               <div className="rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700">
                 {pendingDecisionCount === 0
-                  ? "All decisions are up to date."
+                  ? "No remaining decisions."
                   : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}.`}
               </div>
             ) : null}
@@ -343,11 +351,13 @@ export default function DecisionsPage() {
               <h2 id="offers-awaiting-heading" className="section-heading">
                 Offers awaiting decisions
               </h2>
-              <span className="text-xs text-slate-500">
-                {offerTargets.length === 0
-                  ? "None."
-                  : `${offerTargets.length} offer${offerTargets.length === 1 ? "" : "s"} with requests.`}
-              </span>
+              {offerTargets.length > 0 ? (
+                <span className="text-xs text-slate-500">
+                  {`${offerTargets.length} offer${
+                    offerTargets.length === 1 ? "" : "s"
+                  } with requests.`}
+                </span>
+              ) : null}
             </div>
             {offerTargets.length === 0 ? (
               <div className="empty-state">None.</div>
@@ -372,7 +382,10 @@ export default function DecisionsPage() {
                           {item.status.toLowerCase()}
                         </span>
                       </div>
-                      {renderClaims(claims)}
+                      {renderClaims(claims, {
+                        ownerName: getMemberDisplayName(item.authorMembershipId),
+                        direction: "offer",
+                      })}
                     </div>
                   </li>
                 ))}
@@ -385,11 +398,13 @@ export default function DecisionsPage() {
               <h2 id="desires-awaiting-heading" className="section-heading">
                 Desires awaiting decisions
               </h2>
-              <span className="text-xs text-slate-500">
-                {desireTargets.length === 0
-                  ? "None."
-                  : `${desireTargets.length} desire${desireTargets.length === 1 ? "" : "s"} with requests.`}
-              </span>
+              {desireTargets.length > 0 ? (
+                <span className="text-xs text-slate-500">
+                  {`${desireTargets.length} desire${
+                    desireTargets.length === 1 ? "" : "s"
+                  } with requests.`}
+                </span>
+              ) : null}
             </div>
             {desireTargets.length === 0 ? (
               <div className="empty-state">None.</div>
@@ -414,7 +429,10 @@ export default function DecisionsPage() {
                           {item.status.toLowerCase()}
                         </span>
                       </div>
-                      {renderClaims(claims)}
+                      {renderClaims(claims, {
+                        ownerName: getMemberDisplayName(item.authorMembershipId),
+                        direction: "desire",
+                      })}
                     </div>
                   </li>
                 ))}

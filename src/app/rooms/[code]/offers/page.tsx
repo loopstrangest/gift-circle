@@ -193,16 +193,15 @@ export default function MyOffersPage() {
           <h2 id="published-offers-heading" className="section-heading">
             Published Offers
           </h2>
-          <span className="text-xs text-slate-500">
-            {myOffers.length === 0
-              ? "No offers yet"
-              : `${myOffers.length} active ${myOffers.length === 1 ? "entry" : "entries"}`}
-          </span>
+          {myOffers.length > 0 ? (
+            <span className="text-xs text-slate-500">
+              {`${myOffers.length} active ${myOffers.length === 1 ? "entry" : "entries"}`}
+            </span>
+          ) : null}
         </div>
         {myOffers.length === 0 ? (
           <div className="empty-state">
-            You haven’t added any offers yet. Share what you can contribute to get the circle
-            started.
+            You haven&apos;t added any offers.
           </div>
         ) : (
           <ul className="space-y-4">
