@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import {
   IDENTITY_COOKIE_NAME,
@@ -62,7 +64,8 @@ export async function POST(
   const trimmedDisplayName = parseResult.data.displayName.trim();
 
   const existingMembership = room.memberships.find(
-    (membership) => membership.userId === identity.user.id
+    (membership: (typeof room.memberships)[number]) =>
+      membership.userId === identity.user.id
   );
 
   if (existingMembership) {
@@ -132,7 +135,7 @@ export async function POST(
     refreshIdentityToken(identity);
   }
 
-  const matchingHostMembership = room.memberships.find((membership) => {
+  const matchingHostMembership = room.memberships.find((membership: (typeof room.memberships)[number]) => {
     if (membership.role !== "HOST") {
       return false;
     }
@@ -141,7 +144,7 @@ export async function POST(
   });
 
   if (matchingHostMembership && matchingHostMembership.userId !== identity.user.id) {
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const updatedMembership = await tx.roomMembership.update({
         where: { id: matchingHostMembership.id },
         data: {
@@ -194,7 +197,7 @@ export async function POST(
     return response;
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const membership = await tx.roomMembership.create({
       data: {
         roomId: room.id,

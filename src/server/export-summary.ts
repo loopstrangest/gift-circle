@@ -2,7 +2,6 @@ import PDFDocument from "pdfkit";
 import { promises as fs } from "node:fs";
 import type { Dirent } from "node:fs";
 import path from "node:path";
-import { createRequire } from "node:module";
 
 import { prisma } from "@/lib/prisma";
 import type { Prisma, PrismaClient } from "@prisma/client";
@@ -49,7 +48,6 @@ export type MemberCommitments = {
   receiving: MemberCommitmentEntry[];
 };
 
-const require = createRequire(import.meta.url);
 const PDFKIT_DATA_DIR = path.join(
   process.cwd(),
   "node_modules",
@@ -211,6 +209,17 @@ async function mirrorFontsInto(
 async function ensureStandardFontsAvailable() {
   if (!fontsReady) {
     fontsReady = (async () => {
+      if (!process.env.PDFKIT_DATA_DIR) {
+        process.env.PDFKIT_DATA_DIR = PDFKIT_DATA_DIR;
+      }
+
+      if (process.env.VERCEL === "1") {
+        console.log(LOG_PREFIX, "skipping font mirroring in serverless runtime", {
+          pdfkitDataDir: process.env.PDFKIT_DATA_DIR,
+        });
+        return;
+      }
+
       console.log(LOG_PREFIX, "ensuring standard fonts are present", {
         pdfkitDataDir: PDFKIT_DATA_DIR,
       });

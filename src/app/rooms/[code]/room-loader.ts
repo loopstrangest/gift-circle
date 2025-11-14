@@ -54,7 +54,8 @@ export async function loadRoomRouteData({
 
   if (membershipIdFromQuery) {
     const membershipExists = room.memberships.some(
-      (membership) => membership.id === membershipIdFromQuery
+      (membership: (typeof room.memberships)[number]) =>
+        membership.id === membershipIdFromQuery
     );
     if (!membershipExists) {
       redirect(`/rooms/${room.code}`);
@@ -63,7 +64,7 @@ export async function loadRoomRouteData({
 
   if (!resolvedMembershipId && userId) {
     const matchingMembership = room.memberships.find(
-      (membership) => membership.userId === userId
+      (membership: (typeof room.memberships)[number]) => membership.userId === userId
     );
     if (matchingMembership) {
       resolvedMembershipId = matchingMembership.id;

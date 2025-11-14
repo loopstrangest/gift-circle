@@ -52,7 +52,8 @@ export async function POST(
   }
 
   const callerMembership = room.memberships.find(
-    (membership) => membership.userId === identity.user.id
+    (membership: (typeof room.memberships)[number]) =>
+      membership.userId === identity.user.id
   );
 
   if (!callerMembership || callerMembership.role !== "HOST") {

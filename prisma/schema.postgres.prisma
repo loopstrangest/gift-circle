@@ -1,13 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -21,17 +18,17 @@ model User {
 }
 
 model Room {
-  id          String           @id @default(cuid())
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  code        String           @unique
-  hostId      String
-  host        User             @relation("RoomHost", fields: [hostId], references: [id])
-  currentRound RoomRound       @default(WAITING)
-  memberships RoomMembership[]
-  offers      Offer[]
-  desires     Desire[]
-  claims      Claim[]
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  code         String         @unique
+  hostId       String
+  host         User           @relation("RoomHost", fields: [hostId], references: [id])
+  currentRound RoomRound      @default(WAITING)
+  memberships  RoomMembership[]
+  offers       Offer[]
+  desires      Desire[]
+  claims       Claim[]
 }
 
 model RoomMembership {
@@ -59,17 +56,17 @@ enum MembershipRole {
 }
 
 model Offer {
-  id                 String        @id @default(cuid())
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                 String         @id @default(cuid())
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
   roomId             String
   authorMembershipId String
   title              String
   details            String?
-  status             OfferStatus   @default(OPEN)
-  room               Room          @relation(fields: [roomId], references: [id])
+  status             OfferStatus    @default(OPEN)
+  room               Room           @relation(fields: [roomId], references: [id])
   author             RoomMembership @relation("OfferAuthor", fields: [authorMembershipId], references: [id])
-  claims             Claim[]       @relation("OfferClaims")
+  claims             Claim[]        @relation("OfferClaims")
 
   @@index([roomId])
   @@index([authorMembershipId])
@@ -93,19 +90,19 @@ model Desire {
 }
 
 model Claim {
-  id                  String        @id @default(cuid())
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  id                  String         @id @default(cuid())
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
   roomId              String
   claimerMembershipId String
   offerId             String?
   desireId            String?
-  status              ClaimStatus   @default(PENDING)
+  status              ClaimStatus    @default(PENDING)
   note                String?
-  room                Room          @relation(fields: [roomId], references: [id])
+  room                Room           @relation(fields: [roomId], references: [id])
   claimer             RoomMembership @relation("ClaimClaimer", fields: [claimerMembershipId], references: [id])
-  offer               Offer?        @relation("OfferClaims", fields: [offerId], references: [id], onDelete: Cascade)
-  desire              Desire?       @relation("DesireClaims", fields: [desireId], references: [id], onDelete: Cascade)
+  offer               Offer?         @relation("OfferClaims", fields: [offerId], references: [id], onDelete: Cascade)
+  desire              Desire?        @relation("DesireClaims", fields: [desireId], references: [id], onDelete: Cascade)
 
   @@index([roomId])
   @@index([claimerMembershipId])
@@ -139,3 +136,4 @@ enum RoomRound {
   CONNECTIONS
   DECISIONS
 }
+

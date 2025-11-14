@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import type { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { generateRoomCode } from "@/lib/room-code";
 import {
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const candidateCode = generateRoomCode();
     try {
-      const result = await prisma.$transaction(async (tx) => {
+      const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         const room = await tx.room.create({
           data: {
             code: candidateCode,

@@ -14,16 +14,23 @@ export const metadata: Metadata = {
   title: "Gift Circle Room",
 };
 
+type MaybePromise<T> = T | Promise<T>;
+
 export default async function RoomLayout({
   children,
   params,
   searchParams,
 }: {
   children: React.ReactNode;
-  params: { code: string };
-  searchParams?: Record<string, string | string[] | undefined>;
+  params: MaybePromise<{ code: string }>;
+  searchParams?: MaybePromise<Record<string, string | string[] | undefined>>;
 }) {
-  const cookieStore = cookies();
+  const resolvedParams = await Promise.resolve(params);
+  const resolvedSearchParams = searchParams
+    ? await Promise.resolve(searchParams)
+    : undefined;
+
+  const cookieStore = await cookies();
   const identityCookie = cookieStore.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(identityCookie);
 
@@ -36,8 +43,8 @@ export default async function RoomLayout({
   }
 
   const { snapshot, membershipId } = await loadRoomRouteData({
-    params,
-    searchParams,
+    params: resolvedParams,
+    searchParams: resolvedSearchParams,
     userId: identity.user.id,
   });
 

@@ -1,9 +1,9 @@
 import {
   PrismaClient,
-  type OfferStatus,
+  type Desire,
   type DesireStatus,
   type Offer,
-  type Desire,
+  type OfferStatus,
 } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";

@@ -7,10 +7,16 @@ export type ConnectionArgs = {
 
 let socketInstance: Socket | null = null;
 
+type RoomSocketAuth = {
+  roomId?: string;
+  membershipId?: string;
+};
+
 export function connectToRoom(args: ConnectionArgs) {
   if (socketInstance) {
-    const sameRoom = socketInstance.auth?.roomId === args.roomId;
-    const sameMembership = socketInstance.auth?.membershipId === args.membershipId;
+    const auth = socketInstance.auth as RoomSocketAuth | undefined;
+    const sameRoom = auth?.roomId === args.roomId;
+    const sameMembership = auth?.membershipId === args.membershipId;
     if (sameRoom && sameMembership) {
       return socketInstance;
     }

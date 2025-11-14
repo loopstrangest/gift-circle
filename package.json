@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "tsx server/index.ts dev",
-    "build": "next build",
-    "start": "NODE_ENV=production tsx server/index.ts",
+    "dev:next": "next dev",
+    "build": "npm run prisma:generate:prod && next build",
+    "start": "next start",
+    "start:custom": "NODE_ENV=production tsx server/index.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -13,7 +15,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",
+    "prisma:generate:dev": "prisma generate --schema prisma/schema.prisma",
+    "prisma:generate:prod": "prisma generate --schema prisma/schema.postgres.prisma",
     "prisma:push": "prisma db push",
+    "prisma:migrate:prod": "prisma migrate deploy --schema prisma/schema.postgres.prisma",
     "prisma:seed": "tsx prisma/seed.ts",
     "playwright:install": "playwright install --with-deps"
   },
