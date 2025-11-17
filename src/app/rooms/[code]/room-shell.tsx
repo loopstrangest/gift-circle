@@ -40,6 +40,7 @@ export function RoomShell({ children }: { children: ReactNode }) {
     () => ROOM_ROUND_SEQUENCE.indexOf(room.currentRound),
     [room.currentRound]
   );
+  const showRoomMeta = room.currentRound === "WAITING";
 
   const availableLinks = useMemo(
     () => NAV_LINKS.filter((link) => roundIndex >= link.minRoundIndex),
@@ -90,38 +91,45 @@ export function RoomShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-slate-50">
       <div className="layout-container flex min-h-screen flex-col gap-6">
         <header className="section-card space-y-6" role="banner">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
-                  Gift Circle
-                </p>
-                <h1 className="text-3xl font-semibold text-slate-900">Room {room.code}</h1>
-              </div>
-              <div className="space-y-1 text-sm text-slate-600">
-                <p>
-                  Current round:{" "}
-                  <span className="font-medium text-slate-900">{roundInfo.title}</span>
-                </p>
-                {roundInfo.guidance ? (
-                  <p className="max-w-xl text-slate-500">{roundInfo.guidance}</p>
-                ) : null}
-              </div>
+          <div className="flex flex-col gap-4">
+            <div className="space-y-4 text-center">
+              <h1 className="text-4xl font-semibold text-slate-900">Gift Circle</h1>
+              {showRoomMeta ? (
+                <div className="space-y-3">
+                  <p className="text-base font-semibold text-slate-900">
+                    Room {room.code}
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={handleCopyRoomCode}
+                      disabled={isCopying}
+                    >
+                      {isCopying ? "Copied!" : "Copy room code"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
-            <div className="flex items-start gap-3">
-              <button
-                type="button"
-                className="btn-secondary"
-                onClick={handleCopyRoomCode}
-                disabled={isCopying}
-              >
-                {isCopying ? "Copied!" : "Copy room code"}
-              </button>
+            <div className="space-y-1 text-sm text-slate-600 text-center md:text-left">
+              <p>
+                Current round:{" "}
+                <span className="font-medium text-slate-900">{roundInfo.title}</span>
+              </p>
+              {roundInfo.guidance ? (
+                <p className="max-w-xl text-slate-500 mx-auto md:mx-0">
+                  {roundInfo.guidance}
+                </p>
+              ) : null}
             </div>
           </div>
 
           {availableLinks.length > 0 ? (
-            <nav aria-label="Room navigation" className="-mx-2 overflow-x-auto pb-2 md:mx-0 md:pb-0">
+            <nav
+              aria-label="Room navigation"
+              className="-mx-2 overflow-x-auto pb-2 md:mx-0 md:pb-0"
+            >
               <div className="flex w-max items-center gap-2 px-2 md:w-full md:flex-wrap md:px-0">
                 {availableLinks.map((entry) => {
                   const targetPath =

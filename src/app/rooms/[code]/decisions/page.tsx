@@ -39,6 +39,9 @@ export default function DecisionsPage() {
     return commitmentPreview.get(membershipId) ?? null;
   }, [commitmentPreview, membershipId]);
 
+  const viewerGivingCommitments = viewerCommitments?.giving ?? [];
+  const viewerReceivingCommitments = viewerCommitments?.receiving ?? [];
+
   const hasAcceptedCommitment = useMemo(() => {
     if (!viewerCommitments) {
       return false;
@@ -82,7 +85,9 @@ export default function DecisionsPage() {
         claims: room.claims
           .filter((claim) => claim.offerId === offer.id)
           .slice()
-          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+          .sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          ),
       }))
       .filter((entry) => entry.claims.length > 0);
   }, [membershipId, room]);
@@ -102,7 +107,9 @@ export default function DecisionsPage() {
         claims: room.claims
           .filter((claim) => claim.desireId === desire.id)
           .slice()
-          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()),
+          .sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          ),
       }))
       .filter((entry) => entry.claims.length > 0);
   }, [membershipId, room]);
@@ -114,16 +121,19 @@ export default function DecisionsPage() {
       }
       return (
         (claim.offerId &&
-          room.offers.find((offer) => offer.id === claim.offerId)?.authorMembershipId ===
-            membershipId) ||
+          room.offers.find((offer) => offer.id === claim.offerId)
+            ?.authorMembershipId === membershipId) ||
         (claim.desireId &&
-          room.desires.find((desire) => desire.id === claim.desireId)?.authorMembershipId ===
-            membershipId)
+          room.desires.find((desire) => desire.id === claim.desireId)
+            ?.authorMembershipId === membershipId)
       );
     }).length;
   }, [membershipId, room.claims, room.desires, room.offers]);
 
-  const handleDecision = async (claim: ClaimSummary, decision: "ACCEPTED" | "DECLINED") => {
+  const handleDecision = async (
+    claim: ClaimSummary,
+    decision: "ACCEPTED" | "DECLINED"
+  ) => {
     if (actionState.status === "updating") {
       return;
     }
@@ -234,7 +244,9 @@ export default function DecisionsPage() {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900">{connectionText}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {connectionText}
+                    </p>
                     {claim.note ? (
                       <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
                         {claim.note}
@@ -280,7 +292,9 @@ export default function DecisionsPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl space-y-3">
             <h1 className="text-3xl font-semibold text-slate-900">Decisions</h1>
-            <p className="text-sm text-slate-600">Accept or decline your incoming requests.</p>
+            <p className="text-sm text-slate-600">
+              Accept or decline your incoming requests.
+            </p>
           </div>
           <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
             {isDecisionsRound ? (
@@ -300,9 +314,7 @@ export default function DecisionsPage() {
                       : ""
                   }`}
                   onClick={handleDownloadPdf}
-                  disabled={
-                    pdfState.status === "loading" || !hasAcceptedCommitment
-                  }
+                  disabled={pdfState.status === "loading" || !hasAcceptedCommitment}
                   title={
                     !hasAcceptedCommitment
                       ? "Available after you have at least one accepted commitment."
@@ -325,7 +337,8 @@ export default function DecisionsPage() {
         </div>
         {!isDecisionsRound ? (
           <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-            Decisions will be available once the host advances the room to the Decisions round.
+            Decisions will be available once the host advances the room to the Decisions
+            round.
           </p>
         ) : null}
         {!membershipId ? (
@@ -345,8 +358,64 @@ export default function DecisionsPage() {
       ) : null}
 
       {isDecisionsRound && membershipId ? (
+        <section
+          className="section-card space-y-4"
+          aria-labelledby="my-commitments-heading"
+        >
+          <div>
+            <h2 id="my-commitments-heading" className="section-heading">
+              My Confirmed Connections
+            </h2>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-900">Giving</h3>
+              {viewerGivingCommitments.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  No accepted giving commitments yet.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {viewerGivingCommitments.map((entry) => (
+                    <li key={entry.claimId} className="text-sm text-slate-700">
+                      <span className="font-semibold text-slate-900">
+                        {entry.itemTitle}
+                      </span>{" "}
+                      to {getMemberDisplayName(entry.counterpartMembershipId)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-900">Receiving</h3>
+              {viewerReceivingCommitments.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  No accepted receiving commitments yet.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {viewerReceivingCommitments.map((entry) => (
+                    <li key={entry.claimId} className="text-sm text-slate-700">
+                      <span className="font-semibold text-slate-900">
+                        {entry.itemTitle}
+                      </span>{" "}
+                      from {getMemberDisplayName(entry.counterpartMembershipId)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {isDecisionsRound && membershipId ? (
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="section-card space-y-4" aria-labelledby="offers-awaiting-heading">
+          <section
+            className="section-card space-y-4"
+            aria-labelledby="offers-awaiting-heading"
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 id="offers-awaiting-heading" className="section-heading">
                 Offers awaiting decisions
@@ -371,7 +440,9 @@ export default function DecisionsPage() {
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {item.title}
+                          </p>
                           {item.details ? (
                             <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
                               {item.details}
@@ -393,7 +464,10 @@ export default function DecisionsPage() {
             )}
           </section>
 
-          <section className="section-card space-y-4" aria-labelledby="desires-awaiting-heading">
+          <section
+            className="section-card space-y-4"
+            aria-labelledby="desires-awaiting-heading"
+          >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 id="desires-awaiting-heading" className="section-heading">
                 Desires awaiting decisions
@@ -418,7 +492,9 @@ export default function DecisionsPage() {
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900">{item.title}</p>
+                          <p className="text-sm font-semibold text-slate-900">
+                            {item.title}
+                          </p>
                           {item.details ? (
                             <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
                               {item.details}
@@ -444,4 +520,3 @@ export default function DecisionsPage() {
     </div>
   );
 }
-

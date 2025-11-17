@@ -16,6 +16,7 @@ export default function HomePage() {
   const [viewState, setViewState] = useState<ViewState>({ mode: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [isNavigating, startTransition] = useTransition();
+  const [isLearnMoreVisible, setIsLearnMoreVisible] = useState(false);
   const router = useRouter();
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -96,7 +97,7 @@ export default function HomePage() {
     viewState.mode === "creating" || viewState.mode === "joining" || isNavigating;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-12 px-6 py-16">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
       <header className="space-y-3 text-center">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">
           Gift Circle
@@ -107,7 +108,7 @@ export default function HomePage() {
       </header>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <form onSubmit={handleCreate} className="card flex flex-col gap-4 p-6">
+        <form onSubmit={handleCreate} className="card flex flex-col gap-4 p-5 md:p-6">
           <h2 className="text-lg font-semibold text-slate-900">Host a room</h2>
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-slate-700">Your name</span>
@@ -127,7 +128,7 @@ export default function HomePage() {
           </button>
         </form>
 
-        <form onSubmit={handleJoin} className="card flex flex-col gap-4 p-6">
+        <form onSubmit={handleJoin} className="card flex flex-col gap-4 p-5 md:p-6">
           <h2 className="text-lg font-semibold text-slate-900">Join a room</h2>
           <label className="flex flex-col gap-2 text-sm">
             <span className="font-medium text-slate-700">Your name</span>
@@ -155,6 +156,27 @@ export default function HomePage() {
             {viewState.mode === "joining" || isBusy ? "Joining…" : "Join room"}
           </button>
         </form>
+      </section>
+
+      <section className="space-y-3 text-center">
+        <button
+          type="button"
+          aria-expanded={isLearnMoreVisible}
+          onClick={() => setIsLearnMoreVisible((value) => !value)}
+          className="text-base font-semibold text-indigo-600 transition hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+        >
+          Learn More:
+        </button>
+        {isLearnMoreVisible ? (
+          <p className="text-sm text-slate-600">
+            During a Gift Circle, participants share what they want to give and what
+            they hope to receive. They then request to match each others&apos; offers
+            and desires, and accept or decline those requests. Each participant ought to
+            come prepared with meaningful offers and desires, a commitment to integrity,
+            clear yes-or-no responses, and invitations without pressure so that the
+            generosity keeps flowing long after the Gift Circle.
+          </p>
+        ) : null}
       </section>
 
       {error ? (

@@ -75,7 +75,7 @@ export default function ConnectionsPage() {
     return map;
   }, [room.claims]);
 
-  const myClaims = useMemo(() => {
+  const myClaimerClaims = useMemo(() => {
     if (!membershipId) {
       return [] as ClaimSummary[];
     }
@@ -87,7 +87,7 @@ export default function ConnectionsPage() {
 
   const myPendingTargets = useMemo(() => {
     const set = new Set<string>();
-    for (const claim of myClaims) {
+    for (const claim of myClaimerClaims) {
       if (claim.status === "PENDING") {
         if (claim.offerId) {
           set.add(`offer:${claim.offerId}`);
@@ -98,7 +98,7 @@ export default function ConnectionsPage() {
       }
     }
     return set;
-  }, [myClaims]);
+  }, [myClaimerClaims]);
 
   type ClaimTarget =
     | { kind: "offer"; item: OfferSummary }
@@ -327,6 +327,56 @@ export default function ConnectionsPage() {
     );
   });
 
+  const myActivityEntries = useMemo(() => {
+    if (!membershipId) {
+      return [] as {
+        claim: ClaimSummary;
+        claimerName: string;
+        ownerName: string;
+        isClaimer: boolean;
+        targetTitle: string;
+        kind: "offer" | "desire";
+      }[];
+    }
+
+    return room.claims
+      .map((claim) => {
+        const isClaimer = claim.claimerMembershipId === membershipId;
+        const offer = claim.offerId
+          ? room.offers.find((entry) => entry.id === claim.offerId)
+          : null;
+        const desire = claim.desireId
+          ? room.desires.find((entry) => entry.id === claim.desireId)
+          : null;
+        const ownerMembershipId = offer?.authorMembershipId ?? desire?.authorMembershipId ?? null;
+        const isOwner = ownerMembershipId === membershipId;
+
+        if (!isClaimer && !isOwner) {
+          return null;
+        }
+
+        const claimerName = getMemberDisplayName(claim.claimerMembershipId);
+        const ownerName = ownerMembershipId
+          ? getMemberDisplayName(ownerMembershipId)
+          : "Unknown member";
+        const targetTitle = offer?.title ?? desire?.title ?? "Entry removed";
+
+        return {
+          claim,
+          claimerName,
+          ownerName,
+          isClaimer,
+          targetTitle,
+          kind: offer ? "offer" : "desire",
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null)
+      .sort(
+        (a, b) =>
+          new Date(a.claim.updatedAt).getTime() - new Date(b.claim.updatedAt).getTime()
+      );
+  }, [membershipId, room.claims, room.desires, room.offers, getMemberDisplayName]);
+
   const withdrawingClaimId =
     actionState.status === "withdrawing" ? actionState.claimId : null;
 
@@ -404,30 +454,18 @@ export default function ConnectionsPage() {
               <h2 id="my-activity-heading" className="section-heading">
                 My Activity
               </h2>
-              {myClaims.length === 0 ? (
+              {myActivityEntries.length === 0 ? (
                 <div className="empty-state">
                   You haven&apos;t sent any requests yet.
                 </div>
               ) : (
                 <ul className="space-y-3">
-                  {myClaims.map((claim) => {
-                    const isOffer = Boolean(claim.offerId);
-                    const target = isOffer
-                      ? room.offers.find((offer) => offer.id === claim.offerId)
-                      : room.desires.find((desire) => desire.id === claim.desireId);
-                    const targetTitle = target?.title ?? "Entry removed";
-                    const targetOwnerName = target
-                      ? getMemberDisplayName(target.authorMembershipId)
-                      : "Unknown member";
-                    const claimerName = getMemberDisplayName(claim.claimerMembershipId);
-                    const description = isOffer
-                      ? `${claimerName} has requested to receive`
-                      : `${claimerName} has requested to give`;
-                    const counterpartPhrase = isOffer
-                      ? `from ${targetOwnerName}`
-                      : `to ${targetOwnerName}`;
-                    const canWithdraw =
-                      claim.status === "PENDING" && actionState.status === "idle";
+                  {myActivityEntries.map(
+                    ({ claim, claimerName, ownerName, isClaimer, targetTitle, kind }) => {
+                      const actionVerb = kind === "offer" ? "receive" : "give";
+                      const directionWord = kind === "offer" ? "from" : "to";
+                      const canWithdraw =
+                        isClaimer && claim.status === "PENDING" && actionState.status === "idle";
 
                     return (
                       <li
@@ -435,13 +473,16 @@ export default function ConnectionsPage() {
                         className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
                       >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <p className="text-sm text-slate-700">
-                              <span className="font-semibold">{description}</span>{" "}
-                              <em className="font-semibold italic text-slate-900">
-                                {targetTitle}
-                              </em>{" "}
-                              {counterpartPhrase}.
-                            </p>
+                                <p className="text-sm text-slate-700">
+                                  <span className="font-semibold text-slate-900">
+                                    {claimerName}
+                                  </span>{" "}
+                                  has requested to {actionVerb}{" "}
+                                  <span className="font-semibold italic text-slate-900">
+                                    {targetTitle}
+                                  </span>{" "}
+                                  {directionWord} {ownerName}.
+                                </p>
                           {canWithdraw ? (
                             <button
                               type="button"

@@ -101,10 +101,13 @@ function MemberList({
                     <p className="font-semibold text-emerald-700">Giving</p>
                     <ul className="mt-1 space-y-1">
                       {giving.slice(0, MAX_ENTRIES).map((entry, index) => (
-                        <li key={`${entry.claimId}-giving-${index}`} className="flex flex-wrap gap-1">
-                          <span className="font-medium text-slate-700">{entry.itemTitle}</span>
+                        <li
+                          key={`${entry.claimId}-giving-${index}`}
+                          className="flex flex-wrap gap-1 text-sm"
+                        >
+                          <span className="font-semibold text-slate-900">{entry.itemTitle}</span>
                           <span className="text-slate-500">
-                            → {resolveDisplayName(entry.counterpartMembershipId)}
+                            to {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
@@ -122,10 +125,13 @@ function MemberList({
                     <p className="font-semibold text-sky-700">Receiving</p>
                     <ul className="mt-1 space-y-1">
                       {receiving.slice(0, MAX_ENTRIES).map((entry, index) => (
-                        <li key={`${entry.claimId}-receiving-${index}`} className="flex flex-wrap gap-1">
-                          <span className="font-medium text-slate-700">{entry.itemTitle}</span>
+                        <li
+                          key={`${entry.claimId}-receiving-${index}`}
+                          className="flex flex-wrap gap-1 text-sm"
+                        >
+                          <span className="font-semibold text-slate-900">{entry.itemTitle}</span>
                           <span className="text-slate-500">
-                            ← {resolveDisplayName(entry.counterpartMembershipId)}
+                            from {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
