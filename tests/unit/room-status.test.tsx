@@ -105,10 +105,10 @@ describe("RoomStatus commitments overview", () => {
 
     expect(within(hostRow).getByText(/Giving: 1/i)).toBeInTheDocument();
     expect(within(hostRow).getByText(/Fresh Bread/i)).toBeInTheDocument();
-    expect(within(hostRow).getByText(/→ Guest/i)).toBeInTheDocument();
+    expect(within(hostRow).getByText(/to Guest/i)).toBeInTheDocument();
 
     expect(within(guestRow).getByText(/Receiving: 1/i)).toBeInTheDocument();
-    expect(within(guestRow).getByText(/← Host/i)).toBeInTheDocument();
+    expect(within(guestRow).getByText(/from Host/i)).toBeInTheDocument();
   });
 
   it("does not show commitment badges outside the Decisions round", () => {
