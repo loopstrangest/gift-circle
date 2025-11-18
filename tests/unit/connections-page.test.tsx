@@ -147,7 +147,7 @@ describe("ConnectionsPage", () => {
     render(<ConnectionsPage />);
 
     expect(
-      screen.getByText(/claim requests are only available while the room is in the Connections round/i)
+      screen.getByText(/claim requests are only available during the Connections round/i)
     ).toBeInTheDocument();
   });
 

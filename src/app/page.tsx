@@ -97,78 +97,87 @@ export default function HomePage() {
     viewState.mode === "creating" || viewState.mode === "joining" || isNavigating;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-8 px-6 py-10">
-      <header className="space-y-3 text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-          Gift Circle
-        </h1>
-        <p className="text-base text-slate-600">
-          Share your offers and desires, enjoy the generosity of giving and receiving.
-        </p>
+    <main className="layout-container flex min-h-screen flex-col gap-10">
+      <header className="card app-hero surface-grid space-y-5 rounded-3xl px-6 py-10 text-center">
+        <div className="flex flex-col items-center gap-3 text-brand-ink-800">
+          <h1 className="text-4xl font-semibold tracking-tight text-brand-ink-900">
+            Gift Circle
+          </h1>
+          <p className="max-w-2xl text-base text-brand-ink-700">
+            Share your offers and desires, enjoy the generosity of giving and receiving.
+          </p>
+        </div>
       </header>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <form onSubmit={handleCreate} className="card flex flex-col gap-4 p-5 md:p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Host a room</h2>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-slate-700">Your name</span>
+        <form onSubmit={handleCreate} className="card-gold flex flex-col gap-5 p-6">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold">Host a room</h2>
+          </div>
+          <label className="flex flex-col gap-2">
+            <span className="form-label">Your name</span>
             <input
               name="hostDisplayName"
               type="text"
               autoComplete="name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="input-field"
             />
           </label>
           <button
             type="submit"
             disabled={viewState.mode === "creating" || isBusy}
-            className="btn-primary"
+            className="btn-emerald"
           >
             {viewState.mode === "creating" || isBusy ? "Creating…" : "Create room"}
           </button>
         </form>
 
-        <form onSubmit={handleJoin} className="card flex flex-col gap-4 p-5 md:p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Join a room</h2>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-slate-700">Your name</span>
+        <form
+          onSubmit={handleJoin}
+          className="card flex flex-col gap-5 border-brand-sand-100/70 p-6"
+        >
+          <div className="space-y-1">
+            <h2 className="text-2xl font-semibold text-brand-ink-900">Join a room</h2>
+          </div>
+          <label className="flex flex-col gap-2">
+            <span className="form-label">Your name</span>
             <input
               name="displayName"
               type="text"
               autoComplete="name"
-              className="rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="input-field"
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm">
-            <span className="font-medium text-slate-700">Room code</span>
+          <label className="flex flex-col gap-2">
+            <span className="form-label">Room code</span>
             <input
               name="roomCode"
               type="text"
               maxLength={6}
-              className="rounded-md border border-slate-300 px-3 py-2 text-base uppercase shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="input-field uppercase tracking-[0.2em]"
             />
           </label>
           <button
             type="submit"
             disabled={viewState.mode === "joining" || isBusy}
-            className="btn-secondary"
+            className="btn-outline"
           >
             {viewState.mode === "joining" || isBusy ? "Joining…" : "Join room"}
           </button>
         </form>
       </section>
 
-      <section className="space-y-3 text-center">
+      <section className="card-muted space-y-3 p-6 text-center">
         <button
           type="button"
           aria-expanded={isLearnMoreVisible}
           onClick={() => setIsLearnMoreVisible((value) => !value)}
-          className="text-base font-semibold text-indigo-600 transition hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500"
+          className="mx-auto text-base font-semibold text-brand-green hover:text-brand-gold"
         >
-          Learn More:
+          Learn More
         </button>
         {isLearnMoreVisible ? (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-brand-ink-700">
             During a Gift Circle, participants share what they want to give and what
             they hope to receive. They then request to match each others&apos; offers
             and desires, and accept or decline those requests. Each participant ought to
@@ -180,7 +189,7 @@ export default function HomePage() {
       </section>
 
       {error ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
           {error}
         </p>
       ) : null}

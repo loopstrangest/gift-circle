@@ -85,24 +85,25 @@ export function RoomShell({ children }: { children: ReactNode }) {
   };
 
   const linkBaseClasses =
-    "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500";
+    "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-brand-sand-50">
       <div className="layout-container flex min-h-screen flex-col gap-6">
-        <header className="section-card space-y-6" role="banner">
-          <div className="flex flex-col gap-4">
+        <header
+          className="section-card surface-grid space-y-6 rounded-3xl border-brand-sand-100/80 bg-white/90"
+          role="banner"
+        >
+          <div className="flex flex-col gap-4 text-center md:text-left">
             <div className="space-y-4 text-center">
-              <h1 className="text-4xl font-semibold text-slate-900">Gift Circle</h1>
+              <h1 className="text-4xl font-semibold text-brand-ink-900">Gift Circle</h1>
               {showRoomMeta ? (
-                <div className="space-y-3">
-                  <p className="text-base font-semibold text-slate-900">
-                    Room {room.code}
-                  </p>
+                <div className="space-y-3 text-brand-ink-800">
+                  <p className="text-base font-semibold">Room {room.code}</p>
                   <div className="flex justify-center">
                     <button
                       type="button"
-                      className="btn-secondary"
+                      className="btn-emerald"
                       onClick={handleCopyRoomCode}
                       disabled={isCopying}
                     >
@@ -112,13 +113,13 @@ export function RoomShell({ children }: { children: ReactNode }) {
                 </div>
               ) : null}
             </div>
-            <div className="space-y-1 text-sm text-slate-600 text-center md:text-left">
+            <div className="space-y-2 text-sm text-brand-ink-600">
               <p>
                 Current round:{" "}
-                <span className="font-medium text-slate-900">{roundInfo.title}</span>
+                <span className="font-medium text-brand-ink-900">{roundInfo.title}</span>
               </p>
               {roundInfo.guidance ? (
-                <p className="max-w-xl text-slate-500 mx-auto md:mx-0">
+                <p className="max-w-xl text-brand-ink-600 mx-auto md:mx-0">
                   {roundInfo.guidance}
                 </p>
               ) : null}
@@ -138,8 +139,10 @@ export function RoomShell({ children }: { children: ReactNode }) {
                       : `/rooms/${room.code}`;
                   const href = `${targetPath}${membershipQuery}`;
                   const isActive = currentPath === targetPath;
-                  const activeClasses = "bg-indigo-600 text-white shadow-sm";
-                  const inactiveClasses = "text-slate-600 hover:bg-slate-100";
+                  const activeClasses =
+                    "bg-brand-green text-white shadow-card hover:bg-brand-green-dark hover:text-white";
+                  const inactiveClasses =
+                    "text-brand-ink-600 bg-white/70 border border-brand-sand-200 hover:border-brand-gold hover:text-brand-gold";
 
                   return (
                     <Link

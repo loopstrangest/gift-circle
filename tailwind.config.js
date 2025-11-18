@@ -4,21 +4,40 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "brand-indigo": {
-          50: "#eef2ff",
-          100: "#e0e7ff",
-          200: "#c7d2fe",
-          300: "#a5b4fc",
-          400: "#818cf8",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
-          800: "#3730a3",
-          900: "#312e81",
+        brand: {
+          gold: {
+            light: "#E1C158",
+            DEFAULT: "#D4AF37",
+            dark: "#B29700",
+          },
+          green: {
+            light: "#7DAA6A",
+            DEFAULT: "#619A46",
+            dark: "#438029",
+          },
+          sand: {
+            50: "#FDF8EB",
+            100: "#F8F0D6",
+            200: "#EBD5A3",
+            300: "#D9B66E",
+            400: "#C1963F",
+          },
+          ink: {
+            900: "#1B1A16",
+            800: "#2C2A25",
+            700: "#3F3B33",
+            600: "#575246",
+            500: "#716A59",
+          },
         },
       },
       boxShadow: {
-        card: "0 10px 25px -15px rgba(15, 23, 42, 0.45)",
+        card: "0 18px 45px -30px rgba(27, 26, 22, 0.65)",
+        "card-soft": "0 12px 30px -18px rgba(27, 26, 22, 0.4)",
+      },
+      borderRadius: {
+        "2xl": "1.25rem",
+        "3xl": "1.75rem",
       },
     },
   },

@@ -236,7 +236,7 @@ export default function ConnectionsPage() {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
               <button
                 type="button"
-                className="btn-primary text-xs"
+                className="btn-emerald text-xs"
                 onClick={() => {
                   if (!claimGate.allowed) {
                     return;
@@ -300,7 +300,7 @@ export default function ConnectionsPage() {
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
               <button
                 type="button"
-                className="btn-primary text-xs"
+                className="btn-emerald text-xs"
                 onClick={() => {
                   if (!claimGate.allowed) {
                     return;
@@ -404,9 +404,8 @@ export default function ConnectionsPage() {
       {!isConnectionsRound ? (
         <section className="section-card space-y-2">
           <h2 className="section-heading">Waiting for Connections</h2>
-          <p className="text-sm text-slate-600">
-            Claim requests are only available while the room is in the Connections round.
-            Check back once the host advances the session.
+          <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+            Claim requests are only available during the Connections round.
           </p>
         </section>
       ) : (
@@ -486,7 +485,7 @@ export default function ConnectionsPage() {
                           {canWithdraw ? (
                             <button
                               type="button"
-                              className="btn-secondary text-xs whitespace-nowrap"
+                              className="btn-outline text-xs whitespace-nowrap"
                               onClick={() => handleWithdrawClaim(claim)}
                               disabled={withdrawingClaimId === claim.id}
                             >

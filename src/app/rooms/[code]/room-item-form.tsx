@@ -34,36 +34,36 @@ export function RoomItemForm({
         }
       }}
     >
-      <h2 className="text-lg font-semibold text-slate-900">{heading}</h2>
+      <h2 className="text-lg font-semibold text-brand-ink-900">{heading}</h2>
       <label className="flex flex-col gap-2 text-sm">
-        <span className="font-medium text-slate-700">Title</span>
+        <span className="form-label">Title</span>
         <input
           type="text"
           value={draft.title}
           maxLength={120}
           onChange={(event) => onChange({ ...draft, title: event.target.value })}
-          className="rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="input-field"
           disabled={disabled}
           required
         />
       </label>
       <label className="flex flex-col gap-2 text-sm">
-        <span className="font-medium text-slate-700">Details</span>
+        <span className="form-label">Details</span>
         <textarea
           value={draft.details}
           maxLength={1000}
           onChange={(event) => onChange({ ...draft, details: event.target.value })}
-          className="min-h-[120px] rounded-md border border-slate-300 px-3 py-2 text-base shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="min-h-[140px] input-field"
           disabled={disabled}
         />
       </label>
       <div className="flex flex-wrap gap-3">
-        <button type="submit" className="btn-primary" disabled={disabled}>
+        <button type="submit" className="btn-gold" disabled={disabled}>
           {submitLabel}
         </button>
         <button
           type="button"
-          className="btn-secondary"
+          className="btn-outline"
           onClick={onCancel}
           disabled={disabled}
         >

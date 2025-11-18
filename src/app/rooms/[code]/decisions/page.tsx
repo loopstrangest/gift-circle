@@ -262,7 +262,7 @@ export default function DecisionsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      className="btn-primary text-xs"
+                      className="btn-emerald text-xs"
                       disabled={actionState.status === "updating"}
                       onClick={() => handleDecision(claim, "ACCEPTED")}
                     >
@@ -270,7 +270,7 @@ export default function DecisionsPage() {
                     </button>
                     <button
                       type="button"
-                      className="btn-secondary text-xs"
+                      className="btn-outline text-xs"
                       disabled={actionState.status === "updating"}
                       onClick={() => handleDecision(claim, "DECLINED")}
                     >
@@ -308,11 +308,11 @@ export default function DecisionsPage() {
               <div className="flex flex-col items-start gap-1 md:items-end">
                 <button
                   type="button"
-                  className={`btn-secondary text-xs ${
+                  className={`btn-outline text-xs ${
                     !hasAcceptedCommitment || pdfState.status === "loading"
                       ? "cursor-not-allowed opacity-50"
                       : ""
-                  }`}
+                  } ${!hasAcceptedCommitment || pdfState.status === "loading" ? "hover:text-brand-ink-900 hover:border-brand-ink-500" : ""}`}
                   onClick={handleDownloadPdf}
                   disabled={pdfState.status === "loading" || !hasAcceptedCommitment}
                   title={

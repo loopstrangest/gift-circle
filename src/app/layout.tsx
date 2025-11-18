@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-slate-50 font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} bg-brand-sand-50 font-sans`}
       >
         <IdentityProvider>{children}</IdentityProvider>
       </body>

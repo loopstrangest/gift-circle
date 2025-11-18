@@ -9,7 +9,7 @@
 
   html,
   body {
-    @apply min-h-full text-slate-900 antialiased;
+    @apply min-h-full text-brand-ink-900 antialiased bg-brand-sand-50;
   }
 
   body {
@@ -21,20 +21,28 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
+    background-image: radial-gradient(circle at top left, #fef9ed 0%, #f5f8ef 45%, #ecf3e6 100%);
+    background-attachment: fixed;
   }
 
   a {
-    @apply text-indigo-600 transition hover:text-indigo-500;
+    @apply text-brand-green-dark transition hover:text-brand-gold-dark;
   }
 
   ::selection {
-    @apply bg-indigo-200 text-indigo-900;
+    @apply bg-brand-gold-light/70 text-brand-ink-900;
   }
 }
 
 @layer components {
   .layout-container {
-    @apply mx-auto w-full max-w-6xl px-4 pb-12 pt-8 sm:px-6 lg:px-10;
+    @apply mx-auto w-full max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:px-10;
+  }
+
+  .app-hero {
+    background: radial-gradient(circle at top, rgba(243, 229, 171, 0.95), rgba(231, 244, 219, 0.85));
+    border: 1px solid rgba(178, 151, 0, 0.25);
+    box-shadow: 0 40px 80px -45px rgba(98, 120, 69, 0.8);
   }
 
   .section-card {
@@ -42,22 +50,69 @@
   }
 
   .section-heading {
-    @apply text-xl font-semibold text-slate-900;
+    @apply text-xl font-semibold text-brand-ink-900;
   }
 
   .empty-state {
-    @apply mt-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600;
+    @apply mt-3 rounded-2xl border border-dashed border-brand-sand-200 bg-white/70 px-4 py-6 text-sm text-brand-ink-600;
   }
 
   .card {
-    @apply rounded-xl border border-slate-200 bg-white shadow-card;
+    @apply rounded-3xl border border-brand-sand-100/80 bg-white/90 shadow-card backdrop-blur;
   }
 
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-indigo-300;
+  .card-muted {
+    @apply rounded-3xl border border-brand-sand-100 bg-brand-sand-50/80 shadow-card-soft backdrop-blur;
   }
 
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400;
+  .card-gold {
+    background: linear-gradient(135deg, #f3d88f, #dcb149);
+    @apply rounded-3xl border border-brand-gold-dark/30 shadow-card text-brand-ink-900;
+  }
+
+  .card-emerald {
+    background: linear-gradient(135deg, #9dd190, #4d8c44);
+    @apply rounded-3xl border border-brand-green-dark/30 shadow-card text-white;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold;
+  }
+
+  .btn-gold {
+    @apply btn bg-brand-gold text-brand-ink-900 hover:bg-brand-gold-dark disabled:cursor-not-allowed disabled:bg-brand-gold/50;
+  }
+
+  .btn-emerald {
+    @apply btn bg-brand-green text-white hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:bg-brand-green/50;
+  }
+
+  .btn-outline {
+    @apply btn border border-brand-ink-500 text-brand-ink-900 hover:border-brand-gold hover:text-brand-gold;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-red-400;
+  }
+
+  .pill {
+    @apply inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-ink-600;
+  }
+
+  .form-label {
+    @apply text-sm font-medium text-brand-ink-700;
+  }
+
+  .input-field {
+    @apply rounded-2xl border border-brand-sand-200 bg-white/80 px-4 py-2 text-base text-brand-ink-900 shadow-inner shadow-brand-sand-100/40 transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/30 focus:outline-none;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full border border-brand-sand-200 bg-brand-sand-50 px-2 py-0.5 text-xs font-semibold text-brand-ink-700;
+  }
+
+  .surface-grid {
+    background-image: radial-gradient(circle at 1px 1px, rgba(97, 154, 70, 0.08) 1px, transparent 0);
+    background-size: 18px 18px;
   }
 }

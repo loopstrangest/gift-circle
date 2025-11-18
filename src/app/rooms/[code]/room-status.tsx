@@ -45,8 +45,8 @@ function MemberList({
         const fallBackName = member.displayName?.trim();
         const primaryName = nickname || fallBackName || (isHost ? "Host" : "Anonymous");
         const rowClasses = [
-          "flex flex-col gap-2 rounded-lg border border-slate-200 px-4 py-3 shadow-sm",
-          member.isActive ? "bg-white" : "bg-slate-50",
+          "flex flex-col gap-2 rounded-3xl border border-brand-sand-100 px-4 py-3 shadow-card-soft",
+          member.isActive ? "bg-white/90" : "bg-brand-sand-50/80",
           member.isActive ? "opacity-100" : "opacity-70",
         ].join(" ");
 
@@ -61,28 +61,28 @@ function MemberList({
             <div className="flex w-full items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-medium text-slate-900">
+                  <p className="truncate text-sm font-medium text-brand-ink-900">
                     {primaryName}
                   </p>
                   {isHost ? (
-                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                    <span className="rounded-full bg-brand-gold/20 px-2 py-0.5 text-xs font-medium text-brand-gold-dark">
                       Host
                     </span>
                   ) : null}
                   {isViewer ? (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    <span className="rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium text-brand-ink-700">
                       You
                     </span>
                   ) : null}
                   {showCommitments && summary ? (
                     <span className="flex flex-wrap gap-2">
                       {giving.length > 0 ? (
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                        <span className="rounded-full bg-brand-green/15 px-2 py-0.5 text-xs font-semibold text-brand-green-dark">
                           Giving: {giving.length}
                         </span>
                       ) : null}
                       {receiving.length > 0 ? (
-                        <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700">
+                        <span className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-semibold text-brand-gold-dark">
                           Receiving: {receiving.length}
                         </span>
                       ) : null}
@@ -90,29 +90,29 @@ function MemberList({
                   ) : null}
                 </div>
               </div>
-              <span className="shrink-0 text-xs text-slate-500">
+              <span className="shrink-0 text-xs text-brand-ink-600">
                 Joined {formatJoinedAt(member.joinedAt)}
               </span>
             </div>
             {hasCommitmentDetails ? (
-              <div className="w-full space-y-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              <div className="w-full space-y-2 rounded-2xl bg-brand-sand-50/80 px-3 py-2 text-xs text-brand-ink-700">
                 {giving.length > 0 ? (
                   <div>
-                    <p className="font-semibold text-emerald-700">Giving</p>
+                    <p className="font-semibold text-brand-green-dark">Giving</p>
                     <ul className="mt-1 space-y-1">
                       {giving.slice(0, MAX_ENTRIES).map((entry, index) => (
                         <li
                           key={`${entry.claimId}-giving-${index}`}
                           className="flex flex-wrap gap-1 text-sm"
                         >
-                          <span className="font-semibold text-slate-900">{entry.itemTitle}</span>
-                          <span className="text-slate-500">
+                          <span className="font-semibold text-brand-ink-900">{entry.itemTitle}</span>
+                          <span className="text-brand-ink-600">
                             to {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
                       {giving.length > MAX_ENTRIES ? (
-                        <li className="text-slate-500">
+                        <li className="text-brand-ink-600">
                           +{giving.length - MAX_ENTRIES} more commitment
                           {giving.length - MAX_ENTRIES === 1 ? "" : "s"}
                         </li>
@@ -122,21 +122,21 @@ function MemberList({
                 ) : null}
                 {receiving.length > 0 ? (
                   <div>
-                    <p className="font-semibold text-sky-700">Receiving</p>
+                    <p className="font-semibold text-brand-gold-dark">Receiving</p>
                     <ul className="mt-1 space-y-1">
                       {receiving.slice(0, MAX_ENTRIES).map((entry, index) => (
                         <li
                           key={`${entry.claimId}-receiving-${index}`}
                           className="flex flex-wrap gap-1 text-sm"
                         >
-                          <span className="font-semibold text-slate-900">{entry.itemTitle}</span>
-                          <span className="text-slate-500">
+                          <span className="font-semibold text-brand-ink-900">{entry.itemTitle}</span>
+                          <span className="text-brand-ink-600">
                             from {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
                       {receiving.length > MAX_ENTRIES ? (
-                        <li className="text-slate-500">
+                        <li className="text-brand-ink-600">
                           +{receiving.length - MAX_ENTRIES} more commitment
                           {receiving.length - MAX_ENTRIES === 1 ? "" : "s"}
                         </li>
@@ -177,7 +177,9 @@ function ItemList({
         <h2 id={headingId} className="section-heading">
           {title}
         </h2>
-        {controls ? <div className="flex items-center gap-2 text-xs text-slate-500">{controls}</div> : null}
+        {controls ? (
+          <div className="flex items-center gap-2 text-xs text-brand-ink-600">{controls}</div>
+        ) : null}
       </div>
       {items.length === 0 ? (
         <div className="empty-state">{emptyLabel}</div>
@@ -190,25 +192,25 @@ function ItemList({
             return (
               <li
                 key={item.id}
-                className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+                className="card-muted border border-brand-sand-100 bg-white/85 p-5"
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="truncate text-sm font-semibold text-slate-900">
+                    <p className="truncate text-sm font-semibold text-brand-ink-900">
                       {item.title}
                     </p>
                     {item.details ? (
-                      <p className="text-sm text-slate-600 whitespace-pre-line">
+                      <p className="text-sm text-brand-ink-700 whitespace-pre-line">
                         {item.details}
                       </p>
                     ) : null}
                     {authorName ? (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-brand-ink-600">
                         {authorLabel ? `${authorLabel}: ${authorName}` : authorName}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                  <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-700">
                     {item.status.toLowerCase()}
                   </span>
                 </div>
@@ -318,11 +320,11 @@ export default function RoomStatus() {
   };
 
   const sortSelectClass =
-    "rounded-md border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500";
+    "rounded-full border border-brand-sand-200 bg-white px-3 py-1 text-xs text-brand-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold";
 
   const offerSortControls = (
-    <label className="flex items-center gap-2 text-xs">
-      <span className="text-slate-500">Sort by</span>
+    <label className="flex items-center gap-2 text-xs text-brand-ink-600">
+      <span>Sort by</span>
       <select
         className={sortSelectClass}
         value={offerSort}
@@ -335,8 +337,8 @@ export default function RoomStatus() {
   );
 
   const desireSortControls = (
-    <label className="flex items-center gap-2 text-xs">
-      <span className="text-slate-500">Sort by</span>
+    <label className="flex items-center gap-2 text-xs text-brand-ink-600">
+      <span>Sort by</span>
       <select
         className={sortSelectClass}
         value={desireSort}
@@ -364,7 +366,7 @@ export default function RoomStatus() {
         <h2 id="participants-heading" className="section-heading">
           Participants
         </h2>
-        <span className="text-xs text-slate-500" aria-live="polite">
+        <span className="text-xs text-brand-ink-600" aria-live="polite">
           {visibleMembers.length} member{visibleMembers.length === 1 ? "" : "s"}
         </span>
       </div>
@@ -397,7 +399,7 @@ export default function RoomStatus() {
           </div>
           <button
             type="button"
-            className="btn-primary inline-flex items-center gap-2 self-start"
+            className="btn-gold inline-flex items-center gap-2 self-start"
             onClick={handleAdvanceRound}
             disabled={isAdvancing || !room.nextRound}
             aria-live="polite"

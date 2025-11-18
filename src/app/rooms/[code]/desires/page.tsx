@@ -144,12 +144,12 @@ export default function MyDesiresPage() {
     <div className="space-y-6">
       <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-slate-900">My Desires</h1>
-            <p className="text-sm text-slate-600">{roundInfo.guidance}</p>
+          <div className="space-y-2 text-brand-ink-800">
+            <h1 className="text-3xl font-semibold text-brand-ink-900">My Desires</h1>
+            <p className="text-sm text-brand-ink-600">{roundInfo.guidance}</p>
           </div>
           {canEditDesires ? (
-            <button type="button" className="btn-primary" onClick={startCreate}>
+            <button type="button" className="btn-emerald" onClick={startCreate}>
               Add desire
             </button>
           ) : null}
@@ -194,7 +194,7 @@ export default function MyDesiresPage() {
             Published Desires
           </h2>
           {myDesires.length > 0 ? (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-brand-ink-600">
               {`${myDesires.length} active ${myDesires.length === 1 ? "entry" : "entries"}`}
             </span>
           ) : null}
@@ -211,20 +211,20 @@ export default function MyDesiresPage() {
               return (
                 <li
                   key={desire.id}
-                  className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+                  className="card-muted border border-brand-sand-100 bg-white/80 p-5"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1 space-y-2">
-                      <h3 className="text-sm font-semibold text-slate-900">
+                      <h3 className="text-sm font-semibold text-brand-ink-900">
                         {desire.title}
                       </h3>
                       {desire.details ? (
-                        <p className="text-sm text-slate-600 whitespace-pre-line">
+                        <p className="text-sm text-brand-ink-700 whitespace-pre-line">
                           {desire.details}
                         </p>
                       ) : null}
                     </div>
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                    <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-700">
                       {desire.status.toLowerCase()}
                     </span>
                   </div>
@@ -232,7 +232,7 @@ export default function MyDesiresPage() {
                     <div className="mt-4 flex flex-wrap gap-3">
                       <button
                         type="button"
-                        className="btn-secondary"
+                        className="btn-outline"
                         onClick={() =>
                           setFormMode({
                             type: "edit",
@@ -246,7 +246,7 @@ export default function MyDesiresPage() {
                       </button>
                       <button
                         type="button"
-                        className="btn-primary bg-red-600 hover:bg-red-500 disabled:bg-red-400"
+                        className="btn-danger"
                         onClick={() => handleDelete(desire.id)}
                         disabled={isSaving || isDeleting}
                       >
