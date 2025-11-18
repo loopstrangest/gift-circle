@@ -21,7 +21,12 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
-    background-image: radial-gradient(circle at top left, #fef9ed 0%, #f5f8ef 45%, #ecf3e6 100%);
+    background-image: radial-gradient(
+      circle at top left,
+      #fef9ed 0%,
+      #f5f8ef 45%,
+      #ecf3e6 100%
+    );
     background-attachment: fixed;
   }
 
@@ -40,7 +45,11 @@
   }
 
   .app-hero {
-    background: radial-gradient(circle at top, rgba(243, 229, 171, 0.95), rgba(231, 244, 219, 0.85));
+    background: radial-gradient(
+      circle at top,
+      rgba(243, 229, 171, 0.95),
+      rgba(231, 244, 219, 0.85)
+    );
     border: 1px solid rgba(178, 151, 0, 0.25);
     box-shadow: 0 40px 80px -45px rgba(98, 120, 69, 0.8);
   }
@@ -112,7 +121,11 @@
   }
 
   .surface-grid {
-    background-image: radial-gradient(circle at 1px 1px, rgba(97, 154, 70, 0.08) 1px, transparent 0);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(97, 154, 70, 0.08) 1px,
+      transparent 0
+    );
     background-size: 18px 18px;
   }
 }
