@@ -110,7 +110,10 @@ export default function HomePage() {
       </header>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <form onSubmit={handleCreate} className="card-gold flex flex-col gap-5 p-6">
+        <form
+          onSubmit={handleCreate}
+          className="card flex flex-col gap-5 border-brand-sand-100/70 p-6"
+        >
           <div className="space-y-1">
             <h2 className="text-2xl font-semibold">Host a room</h2>
           </div>
