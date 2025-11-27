@@ -159,7 +159,7 @@ describe("DecisionsPage", () => {
     render(<DecisionsPage />);
 
     expect(
-      screen.getByText(/decisions will be available once the host advances/i)
+      screen.getByText(/decisions are only available during the decisions round/i)
     ).toBeInTheDocument();
   });
 
