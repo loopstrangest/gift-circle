@@ -222,9 +222,11 @@ function ItemList({
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-700">
-                    {item.status.toLowerCase()}
-                  </span>
+                  {item.status !== "OPEN" ? (
+                    <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-700">
+                      {item.status.toLowerCase()}
+                    </span>
+                  ) : null}
                 </div>
               </li>
             );
@@ -286,13 +288,8 @@ export default function RoomStatus() {
     [room.members]
   );
 
-  const hideConfirmedCommitments = room.currentRound === "DECISIONS" || room.currentRound === "SUMMARY";
-
   const sortedOffers = useMemo(() => {
     let items = room.offers;
-    if (hideConfirmedCommitments) {
-      items = items.filter((o) => o.status !== "FULFILLED");
-    }
     if (filterByMembershipId) {
       items = items.filter((o) => o.authorMembershipId === filterByMembershipId);
     }
@@ -306,13 +303,10 @@ export default function RoomStatus() {
       );
     }
     return items;
-  }, [room.offers, offerSort, getMemberDisplayName, filterByMembershipId, hideConfirmedCommitments]);
+  }, [room.offers, offerSort, getMemberDisplayName, filterByMembershipId]);
 
   const sortedDesires = useMemo(() => {
     let items = room.desires;
-    if (hideConfirmedCommitments) {
-      items = items.filter((d) => d.status !== "FULFILLED");
-    }
     if (filterByMembershipId) {
       items = items.filter((d) => d.authorMembershipId === filterByMembershipId);
     }
@@ -326,7 +320,7 @@ export default function RoomStatus() {
       );
     }
     return items;
-  }, [room.desires, desireSort, getMemberDisplayName, filterByMembershipId, hideConfirmedCommitments]);
+  }, [room.desires, desireSort, getMemberDisplayName, filterByMembershipId]);
 
   const commitmentPreview = useMemo(() => buildCommitmentPreview(room), [room]);
   const showCommitments = false;
