@@ -402,8 +402,7 @@ export default function DecisionsPage() {
         </div>
         {!isDecisionsRound ? (
           <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-            Decisions will be available once the host advances the room to the Decisions
-            round.
+            Decisions are only available during the Decisions round.
           </p>
         ) : null}
         {!membershipId ? (
