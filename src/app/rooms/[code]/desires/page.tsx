@@ -219,9 +219,6 @@ export default function MyDesiresPage() {
                         </p>
                       ) : null}
                     </div>
-                    <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-700">
-                      {desire.status.toLowerCase()}
-                    </span>
                   </div>
                   {canEditDesires ? (
                     <div className="mt-4 flex flex-wrap gap-3">
