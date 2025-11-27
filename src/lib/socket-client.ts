@@ -32,7 +32,7 @@ export function connectToRoom(args: ConnectionArgs) {
       roomId: args.roomId,
       membershipId: args.membershipId,
     },
-    transports: ["websocket", "polling"],
+    transports: ["polling", "websocket"],
   });
 
   socketInstance.on("disconnect", () => {
