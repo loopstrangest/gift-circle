@@ -6,6 +6,7 @@ export const ROOM_ROUND_SEQUENCE: readonly RoomRound[] = [
   "DESIRES",
   "CONNECTIONS",
   "DECISIONS",
+  "SUMMARY",
 ] as const;
 
 export type RoomRoundInfo = {
@@ -36,11 +37,10 @@ const ROUND_INFO: Record<RoomRound, RoomRoundInfo> = {
   },
   CONNECTIONS: {
     key: "CONNECTIONS",
-    title: "Connections",
+    title: "Requests",
     description:
       "Participants make requests to receive offers or to fulfill desires from others.",
-    guidance:
-      "Review the offers and desires and send requests to connect with other participants.",
+    guidance: "Review others' offers and desires and send requests.",
   },
   DECISIONS: {
     key: "DECISIONS",
@@ -48,6 +48,12 @@ const ROUND_INFO: Record<RoomRound, RoomRoundInfo> = {
     description:
       "Participants review incoming requests and decide which to accept or decline.",
     guidance: "Review your pending requests and make decisions.",
+  },
+  SUMMARY: {
+    key: "SUMMARY",
+    title: "Summary",
+    description: "Review the gift circle results and share what you enjoyed.",
+    guidance: "See a summary of the gift circle.",
   },
 };
 

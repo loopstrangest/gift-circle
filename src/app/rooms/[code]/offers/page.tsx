@@ -188,16 +188,11 @@ export default function MyOffersPage() {
         />
       ) : null}
 
-      <section className="section-card space-y-4" aria-labelledby="published-offers-heading">
+      <section className="section-card space-y-4" aria-labelledby="my-added-offers-heading">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="published-offers-heading" className="section-heading">
-            Published Offers
+          <h2 id="my-added-offers-heading" className="section-heading">
+            My Added Offers
           </h2>
-          {myOffers.length > 0 ? (
-            <span className="text-xs text-brand-ink-600">
-              {`${myOffers.length} active ${myOffers.length === 1 ? "entry" : "entries"}`}
-            </span>
-          ) : null}
         </div>
         {myOffers.length === 0 ? (
           <div className="empty-state">

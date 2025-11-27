@@ -14,7 +14,9 @@ function buildRoom(overrides: Partial<RoomInput> = {}): RoomInput {
   const now = new Date("2025-01-01T00:00:00.000Z");
   return {
     id: "room-1",
-    code: "ABC123",
+    code: "vow-empowerment",
+    title: null,
+    expiresAt: null,
     hostId: "user-host",
     createdAt: now,
     updatedAt: now,
@@ -31,6 +33,7 @@ function buildRoom(overrides: Partial<RoomInput> = {}): RoomInput {
         userId: "user-host",
         role: "HOST",
         nickname: "Host",
+        enjoyment: null,
         createdAt: now,
         updatedAt: now,
         user: {
@@ -46,6 +49,7 @@ function buildRoom(overrides: Partial<RoomInput> = {}): RoomInput {
         userId: "user-guest",
         role: "PARTICIPANT",
         nickname: "Guest",
+        enjoyment: null,
         createdAt: new Date("2025-01-01T00:05:00.000Z"),
         updatedAt: now,
         user: {
@@ -219,7 +223,7 @@ describe("buildSnapshot", () => {
     expect(snapshot.currentRound).toBe("DESIRES");
     expect(snapshot.nextRound).toBe("CONNECTIONS");
     expect(snapshot.canAdvance).toBe(true);
-    expect(snapshot.rounds).toHaveLength(5);
+    expect(snapshot.rounds).toHaveLength(6);
     const activeRound = snapshot.rounds.find((round) => round.isActive);
     expect(activeRound?.round).toBe("DESIRES");
     const completedRounds = snapshot.rounds.filter((round) => round.isComplete);

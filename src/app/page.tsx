@@ -156,8 +156,7 @@ export default function HomePage() {
             <input
               name="roomCode"
               type="text"
-              maxLength={6}
-              className="input-field uppercase tracking-[0.2em]"
+              className="input-field"
             />
           </label>
           <button

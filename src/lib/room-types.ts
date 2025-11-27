@@ -8,11 +8,13 @@ export type RoomMember = {
   role: MembershipRole;
   joinedAt: string;
   isActive: boolean;
+  enjoyment: string | null;
 };
 
 export type RoomSnapshot = {
   id: string;
   code: string;
+  title: string | null;
   hostId: string;
   hostName: string | null;
   currentRound: RoomRound;
@@ -107,9 +109,14 @@ export type RoomRealtimeEvent =
       type: "round:changed";
       roomId: string;
       round: RoomRound;
+    }
+  | {
+      type: "room:updated";
+      roomId: string;
+      title: string | null;
     };
 
-export type RoomRound = "WAITING" | "OFFERS" | "DESIRES" | "CONNECTIONS" | "DECISIONS";
+export type RoomRound = "WAITING" | "OFFERS" | "DESIRES" | "CONNECTIONS" | "DECISIONS" | "SUMMARY";
 
 export type RoundState = {
   round: RoomRound;

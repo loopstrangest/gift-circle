@@ -490,6 +490,11 @@ export async function renderMemberSummaryPdf({
       }
 
       items.forEach((entry) => {
+        doc
+          .font("Helvetica-Bold")
+          .fontSize(12)
+          .text(`${counterpartPrefix}: ${entry.counterpartName}`);
+
         doc.font("Helvetica-Bold").fontSize(12).text(entry.itemTitle);
 
         if (entry.itemDetails) {
@@ -500,11 +505,6 @@ export async function renderMemberSummaryPdf({
             .text(entry.itemDetails);
           doc.fillColor("black");
         }
-
-        doc
-          .font("Helvetica")
-          .fontSize(11)
-          .text(`${counterpartPrefix}: ${entry.counterpartName}`);
 
         if (entry.note) {
           doc

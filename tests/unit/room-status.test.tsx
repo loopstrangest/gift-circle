@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import RoomStatus from "@/app/rooms/[code]/room-status";
@@ -15,7 +15,7 @@ function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot 
   const now = new Date().toISOString();
   return {
     id: "room-1",
-    code: "ROOM01",
+    code: "gift-generosity",
     hostId: "host",
     hostName: "Host",
     currentRound: "DECISIONS",
@@ -50,12 +50,12 @@ function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot 
   } satisfies RoomSnapshot;
 }
 
-describe("RoomStatus commitments overview", () => {
+describe("RoomStatus participants overview", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
-  it("highlights giving and receiving commitments during the Decisions round", () => {
+  it("does not show commitment badges in participant list", () => {
     const now = new Date().toISOString();
 
     useRoom.mockReturnValue({
@@ -93,25 +93,12 @@ describe("RoomStatus commitments overview", () => {
 
     render(<RoomStatus />);
 
-    const hostRow = screen.getAllByText(/^Host$/i, { selector: "p" })[0]?.closest("li");
-    const guestRow = screen.getAllByText(/^Guest$/i, { selector: "p" })[0]?.closest("li");
-
-    expect(hostRow).not.toBeNull();
-    expect(guestRow).not.toBeNull();
-
-    if (!hostRow || !guestRow) {
-      throw new Error("Expected participant rows to be present");
-    }
-
-    expect(within(hostRow).getByText(/Giving: 1/i)).toBeInTheDocument();
-    expect(within(hostRow).getByText(/Fresh Bread/i)).toBeInTheDocument();
-    expect(within(hostRow).getByText(/to Guest/i)).toBeInTheDocument();
-
-    expect(within(guestRow).getByText(/Receiving: 1/i)).toBeInTheDocument();
-    expect(within(guestRow).getByText(/from Host/i)).toBeInTheDocument();
+    // Commitment badges should never be shown in participant list
+    expect(screen.queryByText(/Giving:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Receiving:/i)).not.toBeInTheDocument();
   });
 
-  it("does not show commitment badges outside the Decisions round", () => {
+  it("displays participant names correctly", () => {
     useRoom.mockReturnValue({
       room: buildRoomSnapshot({ currentRound: "CONNECTIONS" }),
       membershipId: "membership-host",
@@ -121,8 +108,9 @@ describe("RoomStatus commitments overview", () => {
 
     render(<RoomStatus />);
 
-    expect(screen.queryByText(/Giving:/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Receiving:/i)).not.toBeInTheDocument();
+    // Use selector to find the name specifically (not the Host badge)
+    expect(screen.getAllByText(/^Host$/i, { selector: "p" })[0]).toBeInTheDocument();
+    expect(screen.getByText(/^Guest$/i, { selector: "p" })).toBeInTheDocument();
   });
 });
 

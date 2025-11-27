@@ -196,7 +196,7 @@ describe("renderMemberSummaryPdf", () => {
     const buffer = await renderMemberSummaryPdf({
       room: {
         id: "room-1",
-        code: "ROOM01",
+        code: "gift-generosity",
         createdAt: now,
         updatedAt: now,
         hostId: "user-h",

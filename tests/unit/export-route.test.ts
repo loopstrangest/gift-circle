@@ -38,7 +38,7 @@ const { collectMemberCommitments, renderMemberSummaryPdf } = await import("@/ser
 const { GET } = await import("@/app/api/rooms/[code]/export/route");
 
 function buildRequest() {
-  return new NextRequest("http://localhost/api/rooms/ROOM01/export", {
+  return new NextRequest("http://localhost/api/rooms/gift-generosity/export", {
     method: "GET",
   });
 }
@@ -48,35 +48,35 @@ describe("rooms export route", () => {
     vi.clearAllMocks();
   });
 
-  it("returns 409 when the room is not in the Decisions round", async () => {
+  it("returns 409 when the room is not in the Decisions or Summary round", async () => {
     (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "room-1",
-      code: "ROOM01",
+      code: "gift-generosity",
       currentRound: "CONNECTIONS",
       host: { displayName: "Host" },
     } as never);
 
     const response = await GET(buildRequest(), {
-      params: Promise.resolve({ code: "ROOM01" }),
+      params: Promise.resolve({ code: "gift-generosity" }),
     });
 
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({
-      error: expect.stringContaining("only available during the Decisions round"),
+      error: expect.stringContaining("only available during the Decisions or Summary round"),
     });
   });
 
   it("returns 403 when the membership does not exist for the user", async () => {
     (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "room-1",
-      code: "ROOM01",
+      code: "gift-generosity",
       currentRound: "DECISIONS",
       host: { displayName: "Host" },
     } as never);
     (prisma.roomMembership.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
     const response = await GET(buildRequest(), {
-      params: Promise.resolve({ code: "ROOM01" }),
+      params: Promise.resolve({ code: "gift-generosity" }),
     });
 
     expect(response.status).toBe(403);
@@ -90,7 +90,7 @@ describe("rooms export route", () => {
 
     (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "room-1",
-      code: "ROOM01",
+      code: "gift-generosity",
       currentRound: "DECISIONS",
       hostId: "user-host",
       host: { id: "user-host", displayName: "Host", createdAt: now, updatedAt: now },
@@ -107,7 +107,7 @@ describe("rooms export route", () => {
     } as never);
 
     const response = await GET(buildRequest(), {
-      params: Promise.resolve({ code: "ROOM01" }),
+      params: Promise.resolve({ code: "gift-generosity" }),
     });
 
     expect(response.status).toBe(200);

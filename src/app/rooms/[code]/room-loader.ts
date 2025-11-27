@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getRoomSnapshot } from "@/app/rooms/[code]/room-status-data";
 import type { RoomSnapshot } from "@/lib/room-types";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 
 type ParamsInput = { code: string };
 type SearchParamsInput = Record<string, string | string[] | undefined>;
@@ -28,10 +29,11 @@ export async function loadRoomRouteData({
     ? (query.membershipId[0] ?? null)
     : ((query.membershipId as string | undefined) ?? null);
 
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     notFound();
   }
+
+  const roomCode = normalizeRoomCode(code);
 
   const room = await prisma.room.findUnique({
     where: { code: roomCode },

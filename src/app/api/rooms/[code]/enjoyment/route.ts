@@ -9,9 +9,7 @@ import {
   resolveIdentity,
   shouldRefreshIdentity,
 } from "@/lib/identity";
-import { getNextRound } from "@/lib/room-round";
-import { getRoomSnapshot } from "@/app/rooms/[code]/room-status-data";
-import { emitPresenceUpdate, emitRoomEvent } from "@/server/realtime";
+import { emitPresenceUpdate } from "@/server/realtime";
 
 export async function POST(
   request: NextRequest,
@@ -31,37 +29,51 @@ export async function POST(
 
   const room = await prisma.room.findUnique({
     where: { code: roomCode },
-    include: {
-      host: true,
-      memberships: {
-        include: { user: true },
-      },
-      offers: true,
-      desires: true,
-      claims: true,
-    },
+    select: { id: true, currentRound: true },
   });
 
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
 
-  const callerMembership = room.memberships.find(
-    (membership: (typeof room.memberships)[number]) =>
-      membership.userId === identity.user.id
-  );
-
-  if (!callerMembership || callerMembership.role !== "HOST") {
+  if (room.currentRound !== "DECISIONS") {
     return NextResponse.json(
-      { error: "Only the host can advance the room" },
+      { error: "Enjoyment can only be shared during the Decisions round" },
+      { status: 409 }
+    );
+  }
+
+  const membership = await prisma.roomMembership.findUnique({
+    where: {
+      roomId_userId: {
+        roomId: room.id,
+        userId: identity.user.id,
+      },
+    },
+  });
+
+  if (!membership) {
+    return NextResponse.json(
+      { error: "Not a member of this room" },
       { status: 403 }
     );
   }
 
-  const nextRound = getNextRound(room.currentRound);
-  if (!nextRound) {
+  let body: { enjoyment?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const enjoyment = body.enjoyment?.trim();
+  if (!enjoyment) {
+    return NextResponse.json({ error: "Enjoyment is required" }, { status: 400 });
+  }
+
+  if (enjoyment.length > 2000) {
     return NextResponse.json(
-      { error: "Room is already in the final round" },
+      { error: "Enjoyment must be 2000 characters or less" },
       { status: 400 }
     );
   }
@@ -70,31 +82,14 @@ export async function POST(
     refreshIdentityToken(identity);
   }
 
-  const updatedRoom = await prisma.room.update({
-    where: { id: room.id },
-    data: { currentRound: nextRound },
-    include: {
-      host: true,
-      memberships: {
-        include: { user: true },
-      },
-      offers: true,
-      desires: true,
-      claims: true,
-    },
+  await prisma.roomMembership.update({
+    where: { id: membership.id },
+    data: { enjoyment },
   });
 
-  emitRoomEvent(updatedRoom.id, {
-    type: "round:changed",
-    roomId: updatedRoom.id,
-    round: nextRound,
-  });
+  emitPresenceUpdate({ roomId: room.id, reason: "updated" });
 
-  emitPresenceUpdate({ roomId: updatedRoom.id, reason: "updated" });
-
-  const snapshot = await getRoomSnapshot(updatedRoom);
-
-  const response = NextResponse.json(snapshot, { status: 200 });
+  const response = NextResponse.json({ success: true }, { status: 200 });
   if (identity.shouldSetCookie) {
     response.cookies.set(
       IDENTITY_COOKIE_NAME,

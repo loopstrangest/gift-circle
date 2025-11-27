@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 import {
   IDENTITY_COOKIE_NAME,
   identityCookieAttributes,
@@ -80,10 +81,10 @@ export async function GET(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
+  const roomCode = normalizeRoomCode(code);
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
@@ -116,10 +117,10 @@ export async function POST(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
+  const roomCode = normalizeRoomCode(code);
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
@@ -245,10 +246,10 @@ export async function PATCH(
   }
 
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
+  const roomCode = normalizeRoomCode(code);
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);

@@ -55,7 +55,7 @@ function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot 
   const now = new Date().toISOString();
   return {
     id: "room-1",
-    code: "ROOM01",
+    code: "gift-generosity",
     hostId: "host",
     hostName: "Host",
     currentRound: "DECISIONS",
@@ -179,7 +179,7 @@ describe("DecisionsPage", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /accept/i })[0]);
 
     await waitFor(() => {
-      expect(decideClaimApi).toHaveBeenCalledWith("ROOM01", "claim-1", "ACCEPTED");
+      expect(decideClaimApi).toHaveBeenCalledWith("gift-generosity", "claim-1", "ACCEPTED");
     });
     expect(refresh).toHaveBeenCalled();
   });
@@ -200,7 +200,7 @@ describe("DecisionsPage", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /decline/i })[0]);
 
     await waitFor(() => {
-      expect(decideClaimApi).toHaveBeenCalledWith("ROOM01", "claim-1", "DECLINED");
+      expect(decideClaimApi).toHaveBeenCalledWith("gift-generosity", "claim-1", "DECLINED");
     });
     expect(refresh).toHaveBeenCalled();
   });
@@ -269,7 +269,7 @@ describe("DecisionsPage", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/rooms/ROOM01/export", {
+      expect(mockFetch).toHaveBeenCalledWith("/api/rooms/gift-generosity/export", {
         headers: { Accept: "application/pdf" },
       });
 

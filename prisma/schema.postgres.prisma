@@ -18,13 +18,15 @@ model User {
 }
 
 model Room {
-  id           String         @id @default(cuid())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  code         String         @unique
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  code         String           @unique
+  title        String?
+  expiresAt    DateTime?
   hostId       String
-  host         User           @relation("RoomHost", fields: [hostId], references: [id])
-  currentRound RoomRound      @default(WAITING)
+  host         User             @relation("RoomHost", fields: [hostId], references: [id])
+  currentRound RoomRound        @default(WAITING)
   memberships  RoomMembership[]
   offers       Offer[]
   desires      Desire[]
@@ -39,6 +41,7 @@ model RoomMembership {
   userId    String
   role      MembershipRole @default(PARTICIPANT)
   nickname  String?
+  enjoyment String?
   room      Room           @relation(fields: [roomId], references: [id])
   user      User           @relation(fields: [userId], references: [id])
   offers    Offer[]        @relation("OfferAuthor")
@@ -135,5 +138,6 @@ enum RoomRound {
   DESIRES
   CONNECTIONS
   DECISIONS
+  SUMMARY
 }
 

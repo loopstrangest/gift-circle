@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 import {
   IDENTITY_COOKIE_NAME,
   identityCookieAttributes,
@@ -12,6 +13,14 @@ import {
 } from "@/server/export-summary";
 
 const LOG_PREFIX = "[pdf-export]";
+
+function sanitizeForFilename(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
 
 function withIdentityCookie(
   response: NextResponse,
@@ -32,11 +41,11 @@ export async function GET(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  console.log(LOG_PREFIX, "export route request", { roomCode });
-  if (!roomCode || roomCode.length !== 6) {
+  console.log(LOG_PREFIX, "export route request", { roomCode: code });
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
+  const roomCode = normalizeRoomCode(code);
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
@@ -47,7 +56,13 @@ export async function GET(
 
   const room = await prisma.room.findUnique({
     where: { code: roomCode },
-    include: { host: true },
+    select: {
+      id: true,
+      code: true,
+      title: true,
+      currentRound: true,
+      host: true,
+    },
   });
 
   if (!room) {
@@ -58,15 +73,15 @@ export async function GET(
     );
   }
 
-  if (room.currentRound !== "DECISIONS") {
-    console.warn(LOG_PREFIX, "room not in decisions round", {
+  if (room.currentRound !== "DECISIONS" && room.currentRound !== "SUMMARY") {
+    console.warn(LOG_PREFIX, "room not in decisions or summary round", {
       roomId: room.id,
       currentRound: room.currentRound,
     });
     return withIdentityCookie(
       NextResponse.json(
         {
-          error: "PDF export is only available during the Decisions round",
+          error: "PDF export is only available during the Decisions or Summary round",
           message: `Room is currently in the ${room.currentRound} round`,
         },
         { status: 409 }
@@ -145,7 +160,12 @@ export async function GET(
     );
   }
 
-  const filename = `gift-circle-${room.code}-${membership.id}.pdf`;
+  const userName = sanitizeForFilename(
+    membership.nickname || membership.user.displayName || "participant"
+  );
+  const filename = room.title
+    ? `gift-circle-${sanitizeForFilename(room.title)}-${userName}.pdf`
+    : `gift-circle-${userName}.pdf`;
 
   const response = new NextResponse(pdfBuffer as unknown as BodyInit, {
     status: 200,

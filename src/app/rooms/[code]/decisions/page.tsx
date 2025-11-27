@@ -16,6 +16,20 @@ type PdfState =
   | { status: "success" }
   | { status: "error"; message: string };
 
+type EnjoymentState =
+  | { status: "idle" }
+  | { status: "saving" }
+  | { status: "success" }
+  | { status: "error"; message: string };
+
+function sanitizeForFilename(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
+
 const STATUS_LABELS: Record<ClaimSummary["status"], string> = {
   PENDING: "Pending",
   ACCEPTED: "Accepted",
@@ -28,8 +42,19 @@ export default function DecisionsPage() {
   const [actionState, setActionState] = useState<ActionState>({ status: "idle" });
   const [error, setError] = useState<string | null>(null);
   const [pdfState, setPdfState] = useState<PdfState>({ status: "idle" });
+  const [enjoymentDraft, setEnjoymentDraft] = useState("");
+  const [enjoymentState, setEnjoymentState] = useState<EnjoymentState>({ status: "idle" });
 
   const isDecisionsRound = room.currentRound === "DECISIONS";
+
+  const currentMember = useMemo(() => {
+    if (!membershipId) {
+      return null;
+    }
+    return room.members.find((m) => m.membershipId === membershipId) ?? null;
+  }, [room.members, membershipId]);
+
+  const hasSubmittedEnjoyment = Boolean(currentMember?.enjoyment);
 
   const commitmentPreview = useMemo(() => buildCommitmentPreview(room), [room]);
   const viewerCommitments = useMemo(() => {
@@ -83,7 +108,7 @@ export default function DecisionsPage() {
       .map((offer) => ({
         item: offer,
         claims: room.claims
-          .filter((claim) => claim.offerId === offer.id)
+          .filter((claim) => claim.offerId === offer.id && claim.status !== "WITHDRAWN")
           .slice()
           .sort(
             (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -105,7 +130,7 @@ export default function DecisionsPage() {
       .map((desire) => ({
         item: desire,
         claims: room.claims
-          .filter((claim) => claim.desireId === desire.id)
+          .filter((claim) => claim.desireId === desire.id && claim.status !== "WITHDRAWN")
           .slice()
           .sort(
             (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -193,7 +218,10 @@ export default function DecisionsPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      const filename = `gift-circle-${room.code}-${membershipId}.pdf`;
+      const userName = sanitizeForFilename(currentMember?.nickname || currentMember?.displayName || "participant");
+      const filename = room.title
+        ? `gift-circle-${sanitizeForFilename(room.title)}-${userName}.pdf`
+        : `gift-circle-${userName}.pdf`;
       link.download = filename;
       document.body.appendChild(link);
       link.click();
@@ -217,13 +245,50 @@ export default function DecisionsPage() {
     return undefined;
   }, [pdfState.status]);
 
+  const handleSubmitEnjoyment = useCallback(async () => {
+    if (!membershipId || enjoymentState.status === "saving") {
+      return;
+    }
+
+    const trimmedEnjoyment = enjoymentDraft.trim();
+    if (!trimmedEnjoyment) {
+      return;
+    }
+
+    setEnjoymentState({ status: "saving" });
+
+    try {
+      const response = await fetch(`/api/rooms/${room.code}/enjoyment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enjoyment: trimmedEnjoyment }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({ message: "Failed to save." }));
+        throw new Error(
+          (payload as { message?: string; error?: string }).message ??
+            (payload as { error?: string }).error ??
+            "Failed to save."
+        );
+      }
+
+      setEnjoymentState({ status: "success" });
+      setEnjoymentDraft("");
+      await refresh();
+    } catch (err) {
+      const message = (err as Error)?.message ?? "Failed to save.";
+      setEnjoymentState({ status: "error", message });
+    }
+  }, [membershipId, enjoymentState.status, enjoymentDraft, room.code, refresh]);
+
   const renderClaims = (
     claims: ClaimSummary[],
     options: { ownerName: string; direction: "offer" | "desire" }
   ) => {
     const { ownerName, direction } = options;
     if (claims.length === 0) {
-      return <p className="text-sm text-slate-500">No requests for this entry.</p>;
+      return <p className="text-sm text-brand-ink-500">No requests for this entry.</p>;
     }
 
     return (
@@ -239,21 +304,21 @@ export default function DecisionsPage() {
           return (
             <li
               key={claim.id}
-              className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+              className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm"
             >
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900">
+                    <p className="text-sm font-semibold text-brand-ink-900">
                       {connectionText}
                     </p>
                     {claim.note ? (
-                      <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                      <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
                         {claim.note}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-xs font-semibold capitalize text-slate-600">
+                  <span className="shrink-0 rounded-full bg-brand-sand-100 px-3 py-0.5 text-xs font-semibold capitalize text-brand-ink-600">
                     {STATUS_LABELS[claim.status] ?? claim.status}
                   </span>
                 </div>
@@ -291,20 +356,20 @@ export default function DecisionsPage() {
       <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl space-y-3">
-            <h1 className="text-3xl font-semibold text-slate-900">Decisions</h1>
-            <p className="text-sm text-slate-600">
+            <h1 className="text-3xl font-semibold text-brand-ink-900">Decisions</h1>
+            <p className="text-sm text-brand-ink-600">
               Accept or decline your incoming requests.
             </p>
           </div>
           <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
             {isDecisionsRound ? (
-              <div className="rounded-md bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700">
+              <div className="rounded-md bg-brand-gold/10 px-3 py-2 text-xs font-medium text-brand-gold-dark">
                 {pendingDecisionCount === 0
                   ? "No remaining decisions."
                   : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}.`}
               </div>
             ) : null}
-            {isDecisionsRound && membershipId ? (
+            {membershipId ? (
               <div className="flex flex-col items-start gap-1 md:items-end">
                 <button
                   type="button"
@@ -326,7 +391,7 @@ export default function DecisionsPage() {
                     : "Download my commitments"}
                 </button>
                 {pdfState.status === "success" ? (
-                  <span className="text-xs text-green-600">Download started.</span>
+                  <span className="text-xs text-brand-green">Download started.</span>
                 ) : null}
                 {pdfState.status === "error" ? (
                   <span className="text-xs text-red-600">{pdfState.message}</span>
@@ -342,7 +407,7 @@ export default function DecisionsPage() {
           </p>
         ) : null}
         {!membershipId ? (
-          <p className="rounded-md border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-600">
+          <p className="rounded-md border border-brand-sand-200 bg-brand-sand-50 px-4 py-2 text-sm text-brand-ink-600">
             Join the room to manage requests made on your offers and desires.
           </p>
         ) : null}
@@ -368,17 +433,17 @@ export default function DecisionsPage() {
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">Giving</h3>
+            <div className="space-y-3 rounded-lg border border-brand-green/20 bg-brand-green/5 p-4">
+              <h3 className="text-sm font-semibold text-brand-green-dark">Giving</h3>
               {viewerGivingCommitments.length === 0 ? (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-brand-ink-500">
                   No accepted giving commitments yet.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {viewerGivingCommitments.map((entry) => (
-                    <li key={entry.claimId} className="text-sm text-slate-700">
-                      <span className="font-semibold text-slate-900">
+                    <li key={entry.claimId} className="text-sm text-brand-ink-700">
+                      <span className="font-semibold text-brand-ink-900">
                         {entry.itemTitle}
                       </span>{" "}
                       to {getMemberDisplayName(entry.counterpartMembershipId)}
@@ -387,17 +452,17 @@ export default function DecisionsPage() {
                 </ul>
               )}
             </div>
-            <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <h3 className="text-sm font-semibold text-slate-900">Receiving</h3>
+            <div className="space-y-3 rounded-lg border border-brand-gold/20 bg-brand-gold/5 p-4">
+              <h3 className="text-sm font-semibold text-brand-gold-dark">Receiving</h3>
               {viewerReceivingCommitments.length === 0 ? (
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-brand-ink-500">
                   No accepted receiving commitments yet.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {viewerReceivingCommitments.map((entry) => (
-                    <li key={entry.claimId} className="text-sm text-slate-700">
-                      <span className="font-semibold text-slate-900">
+                    <li key={entry.claimId} className="text-sm text-brand-ink-700">
+                      <span className="font-semibold text-brand-ink-900">
                         {entry.itemTitle}
                       </span>{" "}
                       from {getMemberDisplayName(entry.counterpartMembershipId)}
@@ -416,18 +481,9 @@ export default function DecisionsPage() {
             className="section-card space-y-4"
             aria-labelledby="offers-awaiting-heading"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 id="offers-awaiting-heading" className="section-heading">
-                Offers awaiting decisions
-              </h2>
-              {offerTargets.length > 0 ? (
-                <span className="text-xs text-slate-500">
-                  {`${offerTargets.length} offer${
-                    offerTargets.length === 1 ? "" : "s"
-                  } with requests.`}
-                </span>
-              ) : null}
-            </div>
+            <h2 id="offers-awaiting-heading" className="section-heading">
+              Offers awaiting decisions
+            </h2>
             {offerTargets.length === 0 ? (
               <div className="empty-state">None.</div>
             ) : (
@@ -435,21 +491,21 @@ export default function DecisionsPage() {
                 {offerTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+                    className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-brand-ink-900">
                             {item.title}
                           </p>
                           {item.details ? (
-                            <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                            <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
                               {item.details}
                             </p>
                           ) : null}
                         </div>
-                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                        <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-600">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
@@ -468,18 +524,9 @@ export default function DecisionsPage() {
             className="section-card space-y-4"
             aria-labelledby="desires-awaiting-heading"
           >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 id="desires-awaiting-heading" className="section-heading">
-                Desires awaiting decisions
-              </h2>
-              {desireTargets.length > 0 ? (
-                <span className="text-xs text-slate-500">
-                  {`${desireTargets.length} desire${
-                    desireTargets.length === 1 ? "" : "s"
-                  } with requests.`}
-                </span>
-              ) : null}
-            </div>
+            <h2 id="desires-awaiting-heading" className="section-heading">
+              Desires awaiting decisions
+            </h2>
             {desireTargets.length === 0 ? (
               <div className="empty-state">None.</div>
             ) : (
@@ -487,21 +534,21 @@ export default function DecisionsPage() {
                 {desireTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5"
+                    className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900">
+                          <p className="text-sm font-semibold text-brand-ink-900">
                             {item.title}
                           </p>
                           {item.details ? (
-                            <p className="mt-1 text-sm text-slate-600 whitespace-pre-line">
+                            <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
                               {item.details}
                             </p>
                           ) : null}
                         </div>
-                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium capitalize text-slate-600">
+                        <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-600">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
@@ -516,6 +563,56 @@ export default function DecisionsPage() {
             )}
           </section>
         </div>
+      ) : null}
+
+      {isDecisionsRound && membershipId ? (
+        <section
+          className="section-card space-y-4"
+          aria-labelledby="enjoyment-heading"
+        >
+          <div>
+            <h2 id="enjoyment-heading" className="section-heading">
+              Share Your Experience
+            </h2>
+            <p className="mt-1 text-sm text-brand-ink-600">
+              What did you enjoy most about this Gift Circle? Your response will be shared with other participants.
+            </p>
+          </div>
+          {hasSubmittedEnjoyment ? (
+            <div className="rounded-lg border border-brand-green/20 bg-brand-green/5 p-4">
+              <p className="text-sm font-medium text-brand-green-dark">You shared:</p>
+              <p className="mt-2 text-sm text-brand-ink-700 whitespace-pre-line">
+                {currentMember?.enjoyment}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <textarea
+                className="w-full rounded-lg border border-brand-sand-200 bg-white px-4 py-3 text-sm text-brand-ink-900 placeholder:text-brand-ink-400 focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                rows={4}
+                placeholder="Share what you enjoyed about this experience..."
+                value={enjoymentDraft}
+                onChange={(e) => setEnjoymentDraft(e.target.value)}
+                disabled={enjoymentState.status === "saving"}
+              />
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="btn-gold"
+                  onClick={handleSubmitEnjoyment}
+                  disabled={
+                    enjoymentState.status === "saving" || !enjoymentDraft.trim()
+                  }
+                >
+                  {enjoymentState.status === "saving" ? "Sharing..." : "Share"}
+                </button>
+                {enjoymentState.status === "error" ? (
+                  <span className="text-xs text-red-600">{enjoymentState.message}</span>
+                ) : null}
+              </div>
+            </div>
+          )}
+        </section>
       ) : null}
     </div>
   );

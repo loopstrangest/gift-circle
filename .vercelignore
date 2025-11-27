@@ -1,0 +1,5 @@
+# Beads runtime files (not needed for deployment)
+.beads/*.db
+.beads/*.db-*
+.beads/bd.sock
+.beads/daemon.*

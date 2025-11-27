@@ -17,6 +17,7 @@ import { emitPresenceUpdate } from "@/server/realtime";
 
 const BodySchema = z.object({
   hostDisplayName: z.string().min(1).max(64).optional(),
+  title: z.string().min(1).max(100).optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -40,8 +41,12 @@ export async function POST(request: NextRequest) {
     return response;
   }
 
-  const { hostDisplayName } = parseResult.data;
+  const { hostDisplayName, title } = parseResult.data;
   const trimmedDisplayName = hostDisplayName?.trim() ?? null;
+  const trimmedTitle = title?.trim() ?? null;
+
+  // Rooms expire 48 hours after creation
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
   if (trimmedDisplayName && trimmedDisplayName !== identity.user.displayName) {
     identity.user = await updateIdentityDisplayName(
@@ -60,6 +65,8 @@ export async function POST(request: NextRequest) {
         const room = await tx.room.create({
           data: {
             code: candidateCode,
+            title: trimmedTitle,
+            expiresAt,
             hostId: identity.user.id,
           },
         });

@@ -9,11 +9,10 @@ import {
   resolveIdentity,
   shouldRefreshIdentity,
 } from "@/lib/identity";
-import { getNextRound } from "@/lib/room-round";
 import { getRoomSnapshot } from "@/app/rooms/[code]/room-status-data";
 import { emitPresenceUpdate, emitRoomEvent } from "@/server/realtime";
 
-export async function POST(
+export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ code: string }> }
 ) {
@@ -53,18 +52,27 @@ export async function POST(
 
   if (!callerMembership || callerMembership.role !== "HOST") {
     return NextResponse.json(
-      { error: "Only the host can advance the room" },
+      { error: "Only the host can update the room title" },
       { status: 403 }
     );
   }
 
-  const nextRound = getNextRound(room.currentRound);
-  if (!nextRound) {
+  if (room.currentRound !== "WAITING") {
     return NextResponse.json(
-      { error: "Room is already in the final round" },
+      { error: "Room title can only be changed during the WAITING round" },
       { status: 400 }
     );
   }
+
+  let body: { title?: string | null };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
+  const title = body.title === undefined ? room.title : body.title;
+  const trimmedTitle = typeof title === "string" ? title.trim() || null : null;
 
   if (shouldRefreshIdentity(identity.payload)) {
     refreshIdentityToken(identity);
@@ -72,7 +80,7 @@ export async function POST(
 
   const updatedRoom = await prisma.room.update({
     where: { id: room.id },
-    data: { currentRound: nextRound },
+    data: { title: trimmedTitle },
     include: {
       host: true,
       memberships: {
@@ -85,9 +93,9 @@ export async function POST(
   });
 
   emitRoomEvent(updatedRoom.id, {
-    type: "round:changed",
+    type: "room:updated",
     roomId: updatedRoom.id,
-    round: nextRound,
+    title: updatedRoom.title,
   });
 
   emitPresenceUpdate({ roomId: updatedRoom.id, reason: "updated" });

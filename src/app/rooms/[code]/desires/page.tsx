@@ -188,16 +188,11 @@ export default function MyDesiresPage() {
         />
       ) : null}
 
-      <section className="section-card space-y-4" aria-labelledby="published-desires-heading">
+      <section className="section-card space-y-4" aria-labelledby="my-added-desires-heading">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 id="published-desires-heading" className="section-heading">
-            Published Desires
+          <h2 id="my-added-desires-heading" className="section-heading">
+            My Added Desires
           </h2>
-          {myDesires.length > 0 ? (
-            <span className="text-xs text-brand-ink-600">
-              {`${myDesires.length} active ${myDesires.length === 1 ? "entry" : "entries"}`}
-            </span>
-          ) : null}
         </div>
         {myDesires.length === 0 ? (
           <div className="empty-state">

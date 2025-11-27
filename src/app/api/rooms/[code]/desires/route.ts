@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 import {
   IDENTITY_COOKIE_NAME,
   identityCookieAttributes,
@@ -49,12 +50,11 @@ export async function GET(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
 
-  const room = await resolveRoom(roomCode);
+  const room = await resolveRoom(normalizeRoomCode(code));
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
@@ -68,15 +68,14 @@ export async function POST(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
 
-  const room = await resolveRoom(roomCode);
+  const room = await resolveRoom(normalizeRoomCode(code));
   if (!room) {
     const response = NextResponse.json({ error: "Room not found" }, { status: 404 });
     if (identity.shouldSetCookie) {
@@ -160,15 +159,14 @@ export async function PATCH(
   }
 
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
 
-  const room = await resolveRoom(roomCode);
+  const room = await resolveRoom(normalizeRoomCode(code));
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }
@@ -239,15 +237,14 @@ export async function DELETE(
   }
 
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
 
   const cookie = request.cookies.get(IDENTITY_COOKIE_NAME)?.value;
   const identity = await resolveIdentity(cookie);
 
-  const room = await resolveRoom(roomCode);
+  const room = await resolveRoom(normalizeRoomCode(code));
   if (!room) {
     return NextResponse.json({ error: "Room not found" }, { status: 404 });
   }

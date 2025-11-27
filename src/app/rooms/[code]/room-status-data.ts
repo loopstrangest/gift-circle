@@ -74,6 +74,7 @@ export function buildSnapshot(
       role: membership.role,
       joinedAt: membership.createdAt.toISOString(),
       isActive: activeMemberships.has(membership.id),
+      enjoyment: membership.enjoyment,
     }))
   );
 
@@ -83,6 +84,7 @@ export function buildSnapshot(
   return {
     id: room.id,
     code: room.code,
+    title: room.title,
     hostId: room.hostId,
     hostName,
     currentRound: room.currentRound,

@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 import {
   IDENTITY_COOKIE_NAME,
   identityCookieAttributes,
@@ -23,10 +24,12 @@ export async function POST(
   context: { params: Promise<{ code: string }> }
 ) {
   const { code } = await context.params;
-  const roomCode = code?.toUpperCase();
-  if (!roomCode || roomCode.length !== 6) {
+
+  if (!code || !isValidRoomCode(code)) {
     return NextResponse.json({ error: "Invalid room code" }, { status: 400 });
   }
+
+  const roomCode = normalizeRoomCode(code);
 
   const identity = await resolveIdentity(
     request.cookies.get(IDENTITY_COOKIE_NAME)?.value

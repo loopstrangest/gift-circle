@@ -50,4 +50,9 @@ export type RoomEvent =
       type: "round:changed";
       roomId: string;
       round: RoomRound;
+    }
+  | {
+      type: "room:updated";
+      roomId: string;
+      title: string | null;
     };

@@ -5,16 +5,8 @@ import type { ReactNode } from "react";
 
 import type { RoomMember, OfferSummary, DesireSummary } from "@/lib/rooms-client";
 import { buildCommitmentPreview } from "@/lib/room-commitments";
-import { advanceRoomRound } from "@/lib/rooms-client";
-import { getAdvanceLabel, getRoundInfo, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
+import { getRoundInfo, ROOM_ROUND_SEQUENCE } from "@/lib/room-round";
 import { useRoom } from "@/app/rooms/[code]/room-context";
-
-function formatJoinedAt(iso: string) {
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 type MemberCommitmentSummary = ReturnType<typeof buildCommitmentPreview> extends Map<
   string,
@@ -29,25 +21,33 @@ function MemberList({
   commitments,
   showCommitments,
   resolveDisplayName,
+  filterByMembershipId,
+  onFilterByMember,
 }: {
   members: RoomMember[];
   currentMembershipId?: string | null;
   commitments?: Map<string, MemberCommitmentSummary>;
   showCommitments?: boolean;
   resolveDisplayName: (membershipId: string) => string;
+  filterByMembershipId?: string | null;
+  onFilterByMember?: (membershipId: string | null) => void;
 }) {
   return (
-    <ul className="mt-4 space-y-2">
+    <ul className="mt-4 space-y-2 select-none">
       {members.map((member) => {
         const isHost = member.role === "HOST";
         const isViewer = member.membershipId === currentMembershipId;
         const nickname = member.nickname?.trim();
         const fallBackName = member.displayName?.trim();
         const primaryName = nickname || fallBackName || (isHost ? "Host" : "Anonymous");
+        const isClickable = !!onFilterByMember;
+        const isFiltered = filterByMembershipId === member.membershipId;
         const rowClasses = [
           "flex flex-col gap-2 rounded-3xl border border-brand-sand-100 px-4 py-3 shadow-card-soft",
           member.isActive ? "bg-white/90" : "bg-brand-sand-50/80",
           member.isActive ? "opacity-100" : "opacity-70",
+          isClickable ? "cursor-pointer hover:border-brand-gold transition-colors" : "",
+          isFiltered ? "border-brand-gold ring-1 ring-brand-gold" : "",
         ].join(" ");
 
         const summary = commitments?.get(member.membershipId);
@@ -57,11 +57,26 @@ function MemberList({
         const MAX_ENTRIES = 3;
 
         return (
-          <li key={member.membershipId} className={rowClasses}>
+          <li
+            key={member.membershipId}
+            className={rowClasses}
+            onClick={isClickable ? () => onFilterByMember(isFiltered ? null : member.membershipId) : undefined}
+            role={isClickable ? "button" : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onKeyDown={isClickable ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onFilterByMember(isFiltered ? null : member.membershipId);
+              }
+            } : undefined}
+          >
             <div className="flex w-full items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-medium text-brand-ink-900">
+                  <p className={[
+                    "truncate text-sm font-medium",
+                    isFiltered ? "text-brand-gold-dark" : "text-brand-ink-900",
+                  ].join(" ")}>
                     {primaryName}
                   </p>
                   {isHost ? (
@@ -90,9 +105,6 @@ function MemberList({
                   ) : null}
                 </div>
               </div>
-              <span className="shrink-0 text-xs text-brand-ink-600">
-                Joined {formatJoinedAt(member.joinedAt)}
-              </span>
             </div>
             {hasCommitmentDetails ? (
               <div className="w-full space-y-2 rounded-2xl bg-brand-sand-50/80 px-3 py-2 text-xs text-brand-ink-700">
@@ -196,7 +208,7 @@ function ItemList({
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1 space-y-2">
-                    <p className="truncate text-sm font-semibold text-brand-ink-900">
+                    <p className="text-sm font-semibold text-brand-ink-900">
                       {item.title}
                     </p>
                     {item.details ? (
@@ -225,11 +237,14 @@ function ItemList({
 
 type SortOption = "chronological" | "author";
 
+type ItemTab = "offers" | "desires";
+
 export default function RoomStatus() {
   const { room, membershipId, isHost, refresh } = useRoom();
-  const [isAdvancing, setIsAdvancing] = useState(false);
-  const [offerSort, setOfferSort] = useState<SortOption>("chronological");
-  const [desireSort, setDesireSort] = useState<SortOption>("chronological");
+    const [offerSort, setOfferSort] = useState<SortOption>("author");
+  const [desireSort, setDesireSort] = useState<SortOption>("author");
+  const [activeTab, setActiveTab] = useState<ItemTab>("offers");
+  const [filterByMembershipId, setFilterByMembershipId] = useState<string | null>(null);
 
   const hostMembershipId = useMemo(() => {
     return room.members.find((member) => member.role === "HOST")?.membershipId ?? null;
@@ -271,9 +286,18 @@ export default function RoomStatus() {
     [room.members]
   );
 
+  const hideConfirmedCommitments = room.currentRound === "DECISIONS" || room.currentRound === "SUMMARY";
+
   const sortedOffers = useMemo(() => {
+    let items = room.offers;
+    if (hideConfirmedCommitments) {
+      items = items.filter((o) => o.status !== "FULFILLED");
+    }
+    if (filterByMembershipId) {
+      items = items.filter((o) => o.authorMembershipId === filterByMembershipId);
+    }
     if (offerSort === "author") {
-      return [...room.offers].sort((a, b) =>
+      return [...items].sort((a, b) =>
         getMemberDisplayName(a.authorMembershipId).localeCompare(
           getMemberDisplayName(b.authorMembershipId),
           undefined,
@@ -281,12 +305,19 @@ export default function RoomStatus() {
         )
       );
     }
-    return room.offers;
-  }, [room.offers, offerSort, getMemberDisplayName]);
+    return items;
+  }, [room.offers, offerSort, getMemberDisplayName, filterByMembershipId, hideConfirmedCommitments]);
 
   const sortedDesires = useMemo(() => {
+    let items = room.desires;
+    if (hideConfirmedCommitments) {
+      items = items.filter((d) => d.status !== "FULFILLED");
+    }
+    if (filterByMembershipId) {
+      items = items.filter((d) => d.authorMembershipId === filterByMembershipId);
+    }
     if (desireSort === "author") {
-      return [...room.desires].sort((a, b) =>
+      return [...items].sort((a, b) =>
         getMemberDisplayName(a.authorMembershipId).localeCompare(
           getMemberDisplayName(b.authorMembershipId),
           undefined,
@@ -294,30 +325,12 @@ export default function RoomStatus() {
         )
       );
     }
-    return room.desires;
-  }, [room.desires, desireSort, getMemberDisplayName]);
+    return items;
+  }, [room.desires, desireSort, getMemberDisplayName, filterByMembershipId, hideConfirmedCommitments]);
 
   const commitmentPreview = useMemo(() => buildCommitmentPreview(room), [room]);
-  const showCommitments = room.currentRound === "DECISIONS";
+  const showCommitments = false;
   const showSecondaryColumn = offersEnabled || desiresEnabled;
-
-  const isViewingHostControls = isHost && hostMembershipId === membershipId;
-
-  const handleAdvanceRound = async () => {
-    if (isAdvancing || !room.nextRound) {
-      return;
-    }
-
-    try {
-      setIsAdvancing(true);
-      await advanceRoomRound(room.code);
-      await refresh();
-    } catch (error) {
-      console.error("Failed to advance round", error);
-    } finally {
-      setIsAdvancing(false);
-    }
-  };
 
   const sortSelectClass =
     "rounded-full border border-brand-sand-200 bg-white px-3 py-1 text-xs text-brand-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold";
@@ -331,7 +344,7 @@ export default function RoomStatus() {
         onChange={(event) => setOfferSort(event.target.value as SortOption)}
       >
         <option value="chronological">Chronological</option>
-        <option value="author">Author</option>
+        <option value="author">Participant</option>
       </select>
     </label>
   );
@@ -345,90 +358,98 @@ export default function RoomStatus() {
         onChange={(event) => setDesireSort(event.target.value as SortOption)}
       >
         <option value="chronological">Chronological</option>
-        <option value="author">Author</option>
+        <option value="author">Participant</option>
       </select>
     </label>
   );
 
-  const nextRoundTitle = useMemo(() => {
-    if (!room.nextRound) {
-      return null;
-    }
-    return getRoundInfo(room.nextRound).title;
-  }, [room.nextRound]);
-
+  
   const participantSection = (
     <section
       className="section-card space-y-4"
       aria-labelledby="participants-heading"
     >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 id="participants-heading" className="section-heading">
-          Participants
-        </h2>
-        <span className="text-xs text-brand-ink-600" aria-live="polite">
-          {visibleMembers.length} member{visibleMembers.length === 1 ? "" : "s"}
-        </span>
-      </div>
+      <h2 id="participants-heading" className="section-heading">
+        Participants
+      </h2>
       <MemberList
         members={visibleMembers}
         currentMembershipId={membershipId}
         commitments={commitmentPreview}
         showCommitments={showCommitments}
         resolveDisplayName={getMemberDisplayName}
+        filterByMembershipId={filterByMembershipId}
+        onFilterByMember={setFilterByMembershipId}
       />
     </section>
   );
 
   return (
     <section className="space-y-6">
-      {room.canAdvance && isViewingHostControls ? (
-        <section
-          className="section-card space-y-4"
-          aria-labelledby="host-controls-heading"
-        >
-          <div>
-            <h2 id="host-controls-heading" className="section-heading">
-              Host Controls
-            </h2>
-            <p className="mt-1 text-sm text-slate-600">
-              {nextRoundTitle
-                ? `Advance to the ${nextRoundTitle} Round when everyone is ready.`
-                : "Advance to the next round when everyone is ready."}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="btn-gold inline-flex items-center gap-2 self-start"
-            onClick={handleAdvanceRound}
-            disabled={isAdvancing || !room.nextRound}
-            aria-live="polite"
-          >
-            {isAdvancing ? "Advancing…" : getAdvanceLabel(room.nextRound)}
-          </button>
-        </section>
-      ) : null}
-
       {showSecondaryColumn ? (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)] lg:items-start">
           {participantSection}
-          <div className="space-y-6">
-            {offersEnabled ? (
+          <div className="space-y-4">
+            {filterByMembershipId ? (
+              <div className="flex min-w-0 max-w-full items-center gap-2 rounded-full bg-brand-gold/10 px-3 py-1.5 text-sm text-brand-gold-dark">
+                <span className="min-w-0 truncate">
+                  Filtering by: <strong className="truncate">{getMemberDisplayName(filterByMembershipId)}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setFilterByMembershipId(null)}
+                  className="shrink-0 rounded-full p-0.5 hover:bg-brand-gold/20"
+                  aria-label="Clear filter"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : null}
+            {offersEnabled && desiresEnabled ? (
+              <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-brand-sand-200 px-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("offers")}
+                  className={[
+                    "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+                    activeTab === "offers"
+                      ? "border-b-2 border-brand-gold text-brand-gold-dark"
+                      : "text-brand-ink-600 hover:text-brand-ink-900",
+                  ].join(" ")}
+                >
+                  Offers ({sortedOffers.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("desires")}
+                  className={[
+                    "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+                    activeTab === "desires"
+                      ? "border-b-2 border-brand-gold text-brand-gold-dark"
+                      : "text-brand-ink-600 hover:text-brand-ink-900",
+                  ].join(" ")}
+                >
+                  Desires ({sortedDesires.length})
+                </button>
+              </div>
+            ) : null}
+            {offersEnabled && (activeTab === "offers" || !desiresEnabled) ? (
               <ItemList
                 title="Offers"
                 items={sortedOffers}
-                emptyLabel="None."
+                emptyLabel={filterByMembershipId ? "No offers from this participant." : "None."}
                 controls={offerSortControls}
                 getAuthorName={getMemberDisplayName}
                 authorLabel="From"
               />
             ) : null}
-
-            {desiresEnabled ? (
+            {desiresEnabled && (activeTab === "desires" || !offersEnabled) ? (
               <ItemList
                 title="Desires"
                 items={sortedDesires}
-                emptyLabel="None."
+                emptyLabel={filterByMembershipId ? "No desires from this participant." : "None."}
                 controls={desireSortControls}
                 getAuthorName={getMemberDisplayName}
                 authorLabel="For"
@@ -439,27 +460,6 @@ export default function RoomStatus() {
       ) : (
         <div className="space-y-6">
           {participantSection}
-          {offersEnabled ? (
-            <ItemList
-              title="Offers"
-              items={sortedOffers}
-              emptyLabel="None."
-              controls={offerSortControls}
-              getAuthorName={getMemberDisplayName}
-              authorLabel="From"
-            />
-          ) : null}
-
-          {desiresEnabled ? (
-            <ItemList
-              title="Desires"
-              items={sortedDesires}
-              emptyLabel="None."
-              controls={desireSortControls}
-              getAuthorName={getMemberDisplayName}
-              authorLabel="For"
-            />
-          ) : null}
         </div>
       )}
     </section>

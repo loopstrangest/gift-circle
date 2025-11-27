@@ -69,7 +69,7 @@ function buildRequest(method: string, body?: unknown, query: string = "") {
 function setRoom({ round = "CONNECTIONS" }: { round?: string } = {}) {
   (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
     id: "room-1",
-    code: "ABC123",
+    code: "vow-empowerment",
     currentRound: round,
   } as never);
 }
@@ -182,7 +182,7 @@ describe("claims API routes", () => {
     ]);
 
     const response = await listClaimsRoute(buildRequest("GET"), {
-      params: Promise.resolve({ code: "ABC123" }),
+      params: Promise.resolve({ code: "vow-empowerment" }),
     });
 
     expect(response.status).toBe(200);
@@ -196,7 +196,7 @@ describe("claims API routes", () => {
 
     const response = await createClaimRoute(
       buildRequest("POST", { offerId: "offer-1" }),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(409);
@@ -215,7 +215,7 @@ describe("claims API routes", () => {
 
     const response = await createClaimRoute(
       buildRequest("POST", { offerId: "offer-1" }),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(403);
@@ -227,7 +227,7 @@ describe("claims API routes", () => {
   it("creates a claim for open offers", async () => {
     const response = await createClaimRoute(
       buildRequest("POST", { offerId: "offer-1", note: "Excited" }),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(201);
@@ -246,7 +246,7 @@ describe("claims API routes", () => {
   it("withdraws pending claims during Connections", async () => {
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "WITHDRAWN" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(200);
@@ -270,7 +270,7 @@ describe("claims API routes", () => {
 
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "WITHDRAWN" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(409);
@@ -283,7 +283,7 @@ describe("claims API routes", () => {
   it("rejects claim decisions outside the Decisions round", async () => {
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(409);
@@ -298,7 +298,7 @@ describe("claims API routes", () => {
 
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(403);
@@ -346,7 +346,7 @@ describe("claims API routes", () => {
 
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "ACCEPTED" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(200);
@@ -400,7 +400,7 @@ describe("claims API routes", () => {
 
     const response = await updateClaimRoute(
       buildRequest("PATCH", { status: "DECLINED" }, "?claimId=claim-1"),
-      { params: Promise.resolve({ code: "ABC123" }) }
+      { params: Promise.resolve({ code: "vow-empowerment" }) }
     );
 
     expect(response.status).toBe(200);

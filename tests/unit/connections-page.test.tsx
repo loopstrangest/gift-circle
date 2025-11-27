@@ -25,7 +25,7 @@ function buildRoomSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot 
   const now = new Date().toISOString();
   return {
     id: "room-1",
-    code: "ABC123",
+    code: "vow-empowerment",
     hostId: "user-host",
     hostName: "Host User",
     currentRound: "CONNECTIONS",
@@ -147,7 +147,7 @@ describe("ConnectionsPage", () => {
     render(<ConnectionsPage />);
 
     expect(
-      screen.getByText(/claim requests are only available during the Connections round/i)
+      screen.getByText(/Requests are only available during the Connections round/i)
     ).toBeInTheDocument();
   });
 
@@ -168,7 +168,7 @@ describe("ConnectionsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /request to receive/i }));
 
     await waitFor(() => {
-      expect(createClaimApi).toHaveBeenCalledWith("ABC123", {
+      expect(createClaimApi).toHaveBeenCalledWith("vow-empowerment", {
         offerId: "offer-1",
       });
     });
@@ -208,7 +208,7 @@ describe("ConnectionsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /^withdraw$/i }));
 
     await waitFor(() => {
-      expect(withdrawClaimApi).toHaveBeenCalledWith("ABC123", "claim-1");
+      expect(withdrawClaimApi).toHaveBeenCalledWith("vow-empowerment", "claim-1");
     });
 
     expect(refreshMock).toHaveBeenCalled();

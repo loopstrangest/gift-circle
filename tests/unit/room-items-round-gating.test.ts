@@ -61,7 +61,7 @@ describe("round gating for room item mutations", () => {
   it("rejects creating offers when room is not in OFFERS round", async () => {
     (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "room-1",
-      code: "ROOM01",
+      code: "gift-generosity",
       currentRound: "WAITING",
     } as never);
 
@@ -74,7 +74,7 @@ describe("round gating for room item mutations", () => {
     const response = await createOfferRoute(
       buildNextRequest({ title: "A", details: "" }),
       {
-        params: Promise.resolve({ code: "ROOM01" }),
+        params: Promise.resolve({ code: "gift-generosity" }),
       }
     );
 
@@ -87,7 +87,7 @@ describe("round gating for room item mutations", () => {
   it("rejects creating desires when room is not in DESIRES round", async () => {
     (prisma.room.findUnique as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: "room-1",
-      code: "ROOM01",
+      code: "gift-generosity",
       currentRound: "OFFERS",
     } as never);
 
@@ -100,7 +100,7 @@ describe("round gating for room item mutations", () => {
     const response = await createDesireRoute(
       buildNextRequest({ title: "A", details: "" }),
       {
-        params: Promise.resolve({ code: "ROOM01" }),
+        params: Promise.resolve({ code: "gift-generosity" }),
       }
     );
 

@@ -9,12 +9,32 @@ import {
   identityCookieAttributes,
   resolveIdentity,
 } from "@/lib/identity";
-
-export const metadata: Metadata = {
-  title: "Gift Circle Room",
-};
+import { prisma } from "@/lib/prisma";
+import { isValidRoomCode, normalizeRoomCode } from "@/lib/room-code";
 
 type MaybePromise<T> = T | Promise<T>;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: MaybePromise<{ code: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await Promise.resolve(params);
+  const { code } = resolvedParams;
+
+  if (!code || !isValidRoomCode(code)) {
+    return { title: "Gift Circle" };
+  }
+
+  const roomCode = normalizeRoomCode(code);
+  const room = await prisma.room.findUnique({
+    where: { code: roomCode },
+    select: { title: true },
+  });
+
+  const title = room?.title || "Gift Circle";
+  return { title };
+}
 
 export default async function RoomLayout({
   children,
