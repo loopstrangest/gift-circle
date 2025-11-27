@@ -128,7 +128,7 @@
   }
 
   .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:bg-red-400;
+    @apply btn border border-brand-sand-300 bg-brand-sand-100 text-brand-ink-700 hover:border-brand-sand-400 hover:bg-brand-sand-200 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .pill {
