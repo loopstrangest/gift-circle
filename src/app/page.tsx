@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useTransition } from "react";
+import { FormEvent, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { createRoom, joinRoom } from "@/lib/rooms-client";
@@ -19,7 +19,15 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [isNavigating, startTransition] = useTransition();
   const [selectedAction, setSelectedAction] = useState<RoomAction | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+
+  function handleSelectAction(action: RoomAction) {
+    setSelectedAction(action);
+    setTimeout(() => {
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 0);
+  }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -189,7 +197,7 @@ export default function HomePage() {
           <div className="flex justify-center gap-4">
             <button
               type="button"
-              onClick={() => setSelectedAction("host")}
+              onClick={() => handleSelectAction("host")}
               className={`rounded-xl px-6 py-3 font-semibold transition-colors ${
                 selectedAction === "host"
                   ? "bg-brand-green text-white"
@@ -200,7 +208,7 @@ export default function HomePage() {
             </button>
             <button
               type="button"
-              onClick={() => setSelectedAction("join")}
+              onClick={() => handleSelectAction("join")}
               className={`rounded-xl px-6 py-3 font-semibold transition-colors ${
                 selectedAction === "join"
                   ? "bg-brand-green text-white"
@@ -214,6 +222,7 @@ export default function HomePage() {
 
         {selectedAction === "host" && (
           <form
+            ref={formRef}
             onSubmit={handleCreate}
             className="card mx-auto flex max-w-md flex-col gap-5 border-brand-sand-100/70 p-6"
           >
@@ -241,6 +250,7 @@ export default function HomePage() {
 
         {selectedAction === "join" && (
           <form
+            ref={formRef}
             onSubmit={handleJoin}
             className="card mx-auto flex max-w-md flex-col gap-5 border-brand-sand-100/70 p-6"
           >
