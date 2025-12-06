@@ -193,7 +193,7 @@ export default function HomePage() {
 
       <section className="space-y-6">
         <div className="text-center">
-          <p className="mb-4 text-lg text-brand-ink-700">Would you like to host or join a room?</p>
+          <p className="mb-4 text-lg text-brand-ink-700">Would U like to host or join a room?</p>
           <div className="flex justify-center gap-4">
             <button
               type="button"
