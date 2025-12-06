@@ -14,8 +14,8 @@ for (const viewport of viewports) {
       await page.goto("/");
 
       await expect(page.getByRole("heading", { name: "Gift Circle" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Create room" })).toBeVisible();
-      await expect(page.getByRole("button", { name: "Join room" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Host a room" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Join a room" })).toBeVisible();
     });
   });
 }
