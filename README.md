@@ -96,3 +96,62 @@ npm run lint
    ```
 
 After deployment, verify realtime updates by opening two browser tabs on the production site, joining the same room, and confirming that roster/offer changes sync instantly. PDF exports remain available during the Decisions round via `/api/rooms/[code]/export`.
+
+## Deploying Your Own Instance
+
+If you've forked or cloned this repo and want to host your own Gift Circle:
+
+### 1. Import to Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Select **Import Git Repository** and choose your forked repo
+3. Configure the project settings:
+
+| Setting | Value |
+|---------|-------|
+| Framework Preset | Next.js |
+| Root Directory | `.` (default) |
+| Build Command | `npx prisma db push --schema prisma/schema.postgres.prisma && npm run build` |
+
+### 2. Set Up Database
+
+1. In Vercel dashboard → **Storage** → **Create Database** → **Postgres**
+2. This automatically adds `DATABASE_URL` to your environment variables
+
+### 3. Add Environment Variables
+
+Go to **Project Settings** → **Environment Variables** and add:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | Auto-added if using Vercel Postgres, otherwise your Postgres connection string |
+| `IDENTITY_SECRET` | A random string (generate with `openssl rand -base64 32`) |
+
+### 4. Deploy
+
+Vercel will automatically deploy. Subsequent pushes to your main branch trigger redeployments.
+
+### 5. Custom Domain Setup
+
+1. In Vercel → **Project Settings** → **Domains**
+2. Add your domain or subdomain (e.g., `gifts.yoursite.com`)
+3. Add a DNS record at your DNS provider:
+
+| Type | Name | Value |
+|------|------|-------|
+| CNAME | `gifts` (subdomain) | `cname.vercel-dns.com` |
+
+#### Cloudflare Users
+
+If using Cloudflare with proxy enabled (orange cloud):
+
+1. Go to **SSL/TLS** → Set mode to **Full (Strict)**
+2. Go to **SSL/TLS** → **Edge Certificates** → Enable **Always Use HTTPS**
+
+This prevents redirect loops and ensures end-to-end HTTPS.
+
+#### Troubleshooting
+
+- **Chrome not loading but Firefox works**: Clear Chrome's HSTS cache at `chrome://net-internals/#hsts` → Delete the domain → Hard refresh
+- **Redirect loops**: Ensure Cloudflare SSL mode is "Full (Strict)", not "Flexible"
+- **Certificate errors**: Wait a few minutes for SSL certificates to provision
