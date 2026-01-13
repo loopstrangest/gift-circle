@@ -152,18 +152,14 @@ export function RoomShell({ children }: { children: ReactNode }) {
     }
   };
 
-  const linkBaseClasses =
-    "whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold";
-
   return (
-    <div className="min-h-screen bg-brand-sand-50">
+    <div className="min-h-screen">
       <div className="layout-container flex min-h-screen flex-col gap-6">
-        <header
-          className="section-card surface-grid space-y-6 rounded-3xl border-brand-sand-100/80 bg-white/90"
-          role="banner"
-        >
-          <div className="flex flex-col gap-4 text-center md:text-left">
-            <div className="space-y-4 text-center">
+        {/* Room Header */}
+        <header className="room-header relative space-y-6" role="banner">
+          <div className="relative z-10 flex flex-col gap-4 text-center">
+            {/* Title Section */}
+            <div className="space-y-3">
               {showRoomMeta && isHost && isEditingTitle ? (
                 <div className="flex flex-col items-center gap-3">
                   <input
@@ -171,7 +167,7 @@ export function RoomShell({ children }: { children: ReactNode }) {
                     value={titleDraft}
                     onChange={(e) => setTitleDraft(e.target.value)}
                     placeholder="Room Name"
-                    className="w-full max-w-md rounded-lg border border-brand-sand-200 bg-white px-4 py-2 text-center text-2xl font-semibold text-brand-ink-900 placeholder:text-brand-ink-400 focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                    className="input-field max-w-md text-center text-2xl font-semibold"
                     maxLength={100}
                     disabled={isSavingTitle}
                     autoFocus
@@ -179,7 +175,7 @@ export function RoomShell({ children }: { children: ReactNode }) {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="btn-gold text-sm"
+                      className="btn-gold"
                       onClick={handleSaveTitle}
                       disabled={isSavingTitle}
                     >
@@ -187,7 +183,7 @@ export function RoomShell({ children }: { children: ReactNode }) {
                     </button>
                     <button
                       type="button"
-                      className="btn-outline text-sm"
+                      className="btn-outline"
                       onClick={handleCancelEditTitle}
                       disabled={isSavingTitle}
                     >
@@ -197,22 +193,14 @@ export function RoomShell({ children }: { children: ReactNode }) {
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <h1 className="text-4xl font-semibold text-brand-ink-900">
+                  <h1 className="font-display text-3xl font-bold sm:text-4xl" style={{ color: "var(--earth-900)" }}>
                     {room.title || "Gift Circle"}
                   </h1>
-                  {showRoomMeta && isHost && !room.title ? (
+                  {showRoomMeta && isHost && (
                     <button
                       type="button"
-                      className="text-sm text-brand-ink-500 hover:text-brand-gold underline"
-                      onClick={() => setIsEditingTitle(true)}
-                    >
-                      Customize room name
-                    </button>
-                  ) : null}
-                  {showRoomMeta && isHost && room.title ? (
-                    <button
-                      type="button"
-                      className="text-sm text-brand-ink-500 hover:text-brand-gold underline"
+                      className="text-sm font-medium underline transition-colors hover:text-[var(--gold-600)]"
+                      style={{ color: "var(--earth-600)" }}
                       onClick={() => {
                         setTitleDraft(room.title ?? "");
                         setIsEditingTitle(true);
@@ -220,38 +208,41 @@ export function RoomShell({ children }: { children: ReactNode }) {
                     >
                       Customize room name
                     </button>
-                  ) : null}
+                  )}
                 </div>
               )}
-              {showRoomMeta ? (
-                <div className="space-y-3 text-brand-ink-800">
-                  <p className="text-base font-semibold">Room code: {room.code}</p>
-                  <div className="flex justify-center">
-                    <button
-                      type="button"
-                      className="btn-emerald"
-                      onClick={handleCopyRoomCode}
-                      disabled={isCopying}
-                    >
-                      {isCopying ? "Copied!" : "Copy room code"}
-                    </button>
-                  </div>
+
+              {/* Room Code Section */}
+              {showRoomMeta && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-base font-semibold" style={{ color: "var(--earth-700)" }}>
+                    Room code: <span className="font-mono tracking-wider">{room.code}</span>
+                  </p>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={handleCopyRoomCode}
+                    disabled={isCopying}
+                  >
+                    {isCopying ? "Copied!" : "Copy room code"}
+                  </button>
                 </div>
-              ) : null}
-            </div>
-            <div className="space-y-2 text-sm text-brand-ink-600">
-              <p>
-                Current round:{" "}
-                <span className="font-medium text-brand-ink-900">{roundInfo.title}</span>
-              </p>
-              {roundInfo.guidance ? (
-                <p className="max-w-xl text-brand-ink-600 mx-auto md:mx-0">
-                  {roundInfo.guidance}
-                </p>
-              ) : null}
+              )}
             </div>
 
-            {room.canAdvance && isHost ? (
+            {/* Round Info */}
+            <div className="space-y-1 text-sm" style={{ color: "var(--earth-600)" }}>
+              <p>
+                Current round:{" "}
+                <span className="font-semibold" style={{ color: "var(--earth-900)" }}>{roundInfo.title}</span>
+              </p>
+              {roundInfo.guidance && (
+                <p className="mx-auto max-w-xl">{roundInfo.guidance}</p>
+              )}
+            </div>
+
+            {/* Advance Button */}
+            {room.canAdvance && isHost && (
               <div className="pt-2">
                 <button
                   type="button"
@@ -263,45 +254,41 @@ export function RoomShell({ children }: { children: ReactNode }) {
                   {isAdvancing ? "Advancing…" : getAdvanceLabel(room.nextRound)}
                 </button>
               </div>
-            ) : null}
+            )}
           </div>
 
-          {availableLinks.length > 0 ? (
-            <nav
-              aria-label="Room navigation"
-            >
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {availableLinks.map((entry) => {
-                  const targetPath =
-                    entry.href.length > 0
-                      ? `/rooms/${room.code}/${entry.href}`
-                      : `/rooms/${room.code}`;
-                  const href = `${targetPath}${membershipQuery}`;
-                  const isActive = currentPath === targetPath;
-                  const activeClasses =
-                    "bg-brand-green text-white shadow-card hover:bg-brand-green-dark hover:text-white";
-                  const inactiveClasses =
-                    "text-brand-ink-600 bg-white/70 border border-brand-sand-200 hover:border-brand-gold hover:text-brand-gold";
+          {/* Navigation */}
+          {availableLinks.length > 0 && (
+            <nav aria-label="Room navigation" className="relative z-10">
+              <div className="nav-container">
+                <div className="nav-pills justify-center">
+                  {availableLinks.map((entry) => {
+                    const targetPath =
+                      entry.href.length > 0
+                        ? `/rooms/${room.code}/${entry.href}`
+                        : `/rooms/${room.code}`;
+                    const href = `${targetPath}${membershipQuery}`;
+                    const isActive = currentPath === targetPath;
 
-                  return (
-                    <Link
-                      key={entry.href || "overview"}
-                      href={href}
-                      className={`${linkBaseClasses} ${
-                        isActive ? activeClasses : inactiveClasses
-                      }`}
-                      aria-current={isActive ? "page" : undefined}
-                    >
-                      {entry.label}
-                    </Link>
-                  );
-                })}
+                    return (
+                      <Link
+                        key={entry.href || "overview"}
+                        href={href}
+                        className={isActive ? "nav-pill-active" : "nav-pill-inactive"}
+                        aria-current={isActive ? "page" : undefined}
+                      >
+                        {entry.label}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             </nav>
-          ) : null}
+          )}
         </header>
 
-        <main className="flex-1 pb-12">
+        {/* Main Content */}
+        <main className="flex-1 pb-8">
           <div className="space-y-6">{children}</div>
         </main>
       </div>

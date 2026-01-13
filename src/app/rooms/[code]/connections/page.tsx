@@ -155,15 +155,15 @@ export default function ConnectionsPage() {
     return (
       <li
         key={offer.id}
-        className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
+        className="card p-4 sm:p-5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1 space-y-2">
-            <p className="text-sm font-semibold text-brand-ink-900">{offer.title}</p>
+            <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>{offer.title}</p>
             {offer.details ? (
-              <p className="text-sm text-brand-ink-600 whitespace-pre-line">{offer.details}</p>
+              <p className="text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>{offer.details}</p>
             ) : null}
-            <p className="text-xs text-brand-ink-500">
+            <p className="text-xs" style={{ color: "var(--earth-500)" }}>
               From {getMemberDisplayName(offer.authorMembershipId)}
             </p>
           </div>
@@ -226,15 +226,15 @@ export default function ConnectionsPage() {
     return (
       <li
         key={desire.id}
-        className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
+        className="card p-4 sm:p-5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1 space-y-2">
-            <p className="text-sm font-semibold text-brand-ink-900">{desire.title}</p>
+            <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>{desire.title}</p>
             {desire.details ? (
-              <p className="text-sm text-brand-ink-600 whitespace-pre-line">{desire.details}</p>
+              <p className="text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>{desire.details}</p>
             ) : null}
-            <p className="text-xs text-brand-ink-500">
+            <p className="text-xs" style={{ color: "var(--earth-500)" }}>
               For {getMemberDisplayName(desire.authorMembershipId)}
             </p>
           </div>
@@ -276,8 +276,8 @@ export default function ConnectionsPage() {
     <div className="space-y-6">
       <header className="section-card space-y-4" role="banner">
         <div className="space-y-3">
-          <h1 className="text-3xl font-semibold text-brand-ink-900">Requests</h1>
-          <p className="text-sm text-brand-ink-600">
+          <h1 className="font-display text-3xl font-semibold" style={{ color: "var(--earth-900)" }}>Requests</h1>
+          <p className="text-sm" style={{ color: "var(--earth-600)" }}>
             Request to receive offers and fulfill desires.
           </p>
         </div>
@@ -301,28 +301,35 @@ export default function ConnectionsPage() {
         </section>
       ) : (
         <div className="space-y-4">
-          <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-brand-sand-200 px-1">
+          <div
+            className="flex gap-1 rounded-lg p-1"
+            style={{ background: "var(--earth-100)" }}
+          >
             <button
               type="button"
               onClick={() => setActiveTab("offers")}
-              className={[
-                "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+              className={`flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all ${
                 activeTab === "offers"
-                  ? "border-b-2 border-brand-gold text-brand-gold-dark"
-                  : "text-brand-ink-600 hover:text-brand-ink-900",
-              ].join(" ")}
+                  ? "bg-white shadow-sm"
+                  : "hover:bg-white/50"
+              }`}
+              style={{
+                color: activeTab === "offers" ? "var(--green-700)" : "var(--earth-600)"
+              }}
             >
               Open Offers ({visibleOffers.length})
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("desires")}
-              className={[
-                "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+              className={`flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all ${
                 activeTab === "desires"
-                  ? "border-b-2 border-brand-gold text-brand-gold-dark"
-                  : "text-brand-ink-600 hover:text-brand-ink-900",
-              ].join(" ")}
+                  ? "bg-white shadow-sm"
+                  : "hover:bg-white/50"
+              }`}
+              style={{
+                color: activeTab === "desires" ? "var(--gold-700)" : "var(--earth-600)"
+              }}
             >
               Open Desires ({visibleDesires.length})
             </button>
