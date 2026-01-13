@@ -21,7 +21,7 @@ async function main() {
 
   const room = await prisma.room.create({
     data: {
-      code: "ABC123",
+      code: "gift-courage",
       hostId: host.id,
       currentRound: "OFFERS",
     },

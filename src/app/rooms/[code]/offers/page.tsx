@@ -144,9 +144,9 @@ export default function MyOffersPage() {
     <div className="space-y-6">
       <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-2 text-brand-ink-800">
-            <h1 className="text-3xl font-semibold text-brand-ink-900">My Offers</h1>
-            <p className="text-sm text-brand-ink-600">{roundInfo.guidance}</p>
+          <div className="space-y-2">
+            <h1 className="font-display text-3xl font-semibold" style={{ color: "var(--earth-900)" }}>My Offers</h1>
+            <p className="text-sm" style={{ color: "var(--earth-600)" }}>{roundInfo.guidance}</p>
           </div>
           {canEditOffers ? (
             <button type="button" className="btn-gold" onClick={startCreate}>
@@ -206,15 +206,15 @@ export default function MyOffersPage() {
               return (
                 <li
                   key={offer.id}
-                  className="card-muted border border-brand-sand-100 bg-white/80 p-5"
+                  className="card p-5"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1 space-y-2">
-                      <h3 className="text-sm font-semibold text-brand-ink-900">
+                      <h3 className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                         {offer.title}
                       </h3>
                       {offer.details ? (
-                        <p className="text-sm text-brand-ink-700 whitespace-pre-line">
+                        <p className="text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>
                           {offer.details}
                         </p>
                       ) : null}

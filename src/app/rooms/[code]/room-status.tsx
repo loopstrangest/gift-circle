@@ -42,13 +42,6 @@ function MemberList({
         const primaryName = nickname || fallBackName || (isHost ? "Host" : "Anonymous");
         const isClickable = !!onFilterByMember;
         const isFiltered = filterByMembershipId === member.membershipId;
-        const rowClasses = [
-          "flex flex-col gap-2 rounded-3xl border border-brand-sand-100 px-4 py-3 shadow-card-soft",
-          member.isActive ? "bg-white/90" : "bg-brand-sand-50/80",
-          member.isActive ? "opacity-100" : "opacity-70",
-          isClickable ? "cursor-pointer hover:border-brand-gold transition-colors" : "",
-          isFiltered ? "border-brand-gold ring-1 ring-brand-gold" : "",
-        ].join(" ");
 
         const summary = commitments?.get(member.membershipId);
         const giving = summary?.giving ?? [];
@@ -59,7 +52,8 @@ function MemberList({
         return (
           <li
             key={member.membershipId}
-            className={rowClasses}
+            className={`member-card ${!member.isActive ? "opacity-60" : ""}`}
+            data-filtered={isFiltered}
             onClick={isClickable ? () => onFilterByMember(isFiltered ? null : member.membershipId) : undefined}
             role={isClickable ? "button" : undefined}
             tabIndex={isClickable ? 0 : undefined}
@@ -69,95 +63,93 @@ function MemberList({
                 onFilterByMember(isFiltered ? null : member.membershipId);
               }
             } : undefined}
+            style={{ cursor: isClickable ? "pointer" : "default" }}
           >
             <div className="flex w-full items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className={[
-                    "truncate text-sm font-medium",
-                    isFiltered ? "text-brand-gold-dark" : "text-brand-ink-900",
-                  ].join(" ")}>
+                  <p className={`truncate text-sm font-semibold ${isFiltered ? "text-[var(--gold-700)]" : "text-[var(--earth-900)]"}`}>
                     {primaryName}
                   </p>
-                  {isHost ? (
-                    <span className="rounded-full bg-brand-gold/20 px-2 py-0.5 text-xs font-medium text-brand-gold-dark">
+                  {isHost && (
+                    <span className="badge-gold">
                       Host
                     </span>
-                  ) : null}
-                  {isViewer ? (
-                    <span className="rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium text-brand-ink-700">
+                  )}
+                  {isViewer && (
+                    <span className="badge-neutral">
                       You
                     </span>
-                  ) : null}
-                  {showCommitments && summary ? (
+                  )}
+                  {showCommitments && summary && (
                     <span className="flex flex-wrap gap-2">
-                      {giving.length > 0 ? (
-                        <span className="rounded-full bg-brand-green/15 px-2 py-0.5 text-xs font-semibold text-brand-green-dark">
+                      {giving.length > 0 && (
+                        <span className="badge-green">
                           Giving: {giving.length}
                         </span>
-                      ) : null}
-                      {receiving.length > 0 ? (
-                        <span className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-semibold text-brand-gold-dark">
+                      )}
+                      {receiving.length > 0 && (
+                        <span className="badge-gold">
                           Receiving: {receiving.length}
                         </span>
-                      ) : null}
+                      )}
                     </span>
-                  ) : null}
+                  )}
                 </div>
               </div>
             </div>
-            {hasCommitmentDetails ? (
-              <div className="w-full space-y-2 rounded-2xl bg-brand-sand-50/80 px-3 py-2 text-xs text-brand-ink-700">
-                {giving.length > 0 ? (
+            {hasCommitmentDetails && (
+              <div className="mt-3 w-full space-y-2 rounded-lg p-3 text-xs" style={{ background: "var(--earth-50)" }}>
+                {giving.length > 0 && (
                   <div>
-                    <p className="font-semibold text-brand-green-dark">Giving</p>
+                    <p className="font-semibold" style={{ color: "var(--green-700)" }}>Giving</p>
                     <ul className="mt-1 space-y-1">
                       {giving.slice(0, MAX_ENTRIES).map((entry, index) => (
                         <li
                           key={`${entry.claimId}-giving-${index}`}
                           className="flex flex-wrap gap-1 text-sm"
                         >
-                          <span className="font-semibold text-brand-ink-900">{entry.itemTitle}</span>
-                          <span className="text-brand-ink-600">
+                          <span className="font-semibold" style={{ color: "var(--earth-900)" }}>{entry.itemTitle}</span>
+                          <span style={{ color: "var(--earth-600)" }}>
                             to {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
-                      {giving.length > MAX_ENTRIES ? (
-                        <li className="text-brand-ink-600">
+                      {giving.length > MAX_ENTRIES && (
+                        <li style={{ color: "var(--earth-500)" }}>
                           +{giving.length - MAX_ENTRIES} more commitment
                           {giving.length - MAX_ENTRIES === 1 ? "" : "s"}
                         </li>
-                      ) : null}
+                      )}
                     </ul>
                   </div>
-                ) : null}
-                {receiving.length > 0 ? (
+                )}
+                {receiving.length > 0 && (
                   <div>
-                    <p className="font-semibold text-brand-gold-dark">Receiving</p>
+                    <p className="font-semibold" style={{ color: "var(--gold-700)" }}>Receiving</p>
                     <ul className="mt-1 space-y-1">
                       {receiving.slice(0, MAX_ENTRIES).map((entry, index) => (
                         <li
                           key={`${entry.claimId}-receiving-${index}`}
                           className="flex flex-wrap gap-1 text-sm"
                         >
-                          <span className="font-semibold text-brand-ink-900">{entry.itemTitle}</span>
-                          <span className="text-brand-ink-600">
+                          <span className="font-semibold" style={{ color: "var(--earth-900)" }}>{entry.itemTitle}</span>
+                          <span style={{ color: "var(--earth-600)" }}>
                             from {resolveDisplayName(entry.counterpartMembershipId)}
                           </span>
                         </li>
                       ))}
-                      {receiving.length > MAX_ENTRIES ? (
-                        <li className="text-brand-ink-600">
+                      {receiving.length > MAX_ENTRIES && (
+                        <li style={{ color: "var(--earth-500)" }}>
                           +{receiving.length - MAX_ENTRIES} more commitment
                           {receiving.length - MAX_ENTRIES === 1 ? "" : "s"}
                         </li>
-                      ) : null}
+                      )}
                     </ul>
                   </div>
-                ) : null}
+                )}
               </div>
-            ) : null}
+            )}
           </li>
         );
       })}
@@ -189,14 +181,14 @@ function ItemList({
         <h2 id={headingId} className="section-heading">
           {title}
         </h2>
-        {controls ? (
-          <div className="flex items-center gap-2 text-xs text-brand-ink-600">{controls}</div>
-        ) : null}
+        {controls && (
+          <div className="flex items-center gap-2 text-xs" style={{ color: "var(--earth-600)" }}>{controls}</div>
+        )}
       </div>
       {items.length === 0 ? (
         <div className="empty-state">{emptyLabel}</div>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-3">
           {items.map((item) => {
             const authorName = getAuthorName
               ? getAuthorName(item.authorMembershipId)
@@ -204,23 +196,23 @@ function ItemList({
             return (
               <li
                 key={item.id}
-                className="card-muted border border-brand-sand-100 bg-white/85 p-5"
+                className="card p-4"
               >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-brand-ink-900">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                       {item.title}
                     </p>
-                    {item.details ? (
-                      <p className="text-sm text-brand-ink-700 whitespace-pre-line">
+                    {item.details && (
+                      <p className="text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>
                         {item.details}
                       </p>
-                    ) : null}
-                    {authorName ? (
-                      <p className="text-xs text-brand-ink-600">
+                    )}
+                    {authorName && (
+                      <p className="text-xs" style={{ color: "var(--earth-500)" }}>
                         {authorLabel ? `${authorLabel}: ${authorName}` : authorName}
                       </p>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </li>
@@ -238,7 +230,7 @@ type ItemTab = "offers" | "desires";
 
 export default function RoomStatus() {
   const { room, membershipId, isHost, refresh } = useRoom();
-    const [offerSort, setOfferSort] = useState<SortOption>("author");
+  const [offerSort, setOfferSort] = useState<SortOption>("author");
   const [desireSort, setDesireSort] = useState<SortOption>("author");
   const [activeTab, setActiveTab] = useState<ItemTab>("offers");
   const [filterByMembershipId, setFilterByMembershipId] = useState<string | null>(null);
@@ -321,14 +313,16 @@ export default function RoomStatus() {
   const showCommitments = false;
   const showSecondaryColumn = offersEnabled || desiresEnabled;
 
-  const sortSelectClass =
-    "rounded-full border border-brand-sand-200 bg-white px-3 py-1 text-xs text-brand-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold";
-
   const offerSortControls = (
-    <label className="flex items-center gap-2 text-xs text-brand-ink-600">
+    <label className="flex items-center gap-2 text-xs" style={{ color: "var(--earth-600)" }}>
       <span>Sort by</span>
       <select
-        className={sortSelectClass}
+        className="rounded-lg border-2 px-3 py-1.5 text-xs font-medium"
+        style={{
+          background: "white",
+          borderColor: "var(--earth-200)",
+          color: "var(--earth-700)"
+        }}
         value={offerSort}
         onChange={(event) => setOfferSort(event.target.value as SortOption)}
       >
@@ -339,10 +333,15 @@ export default function RoomStatus() {
   );
 
   const desireSortControls = (
-    <label className="flex items-center gap-2 text-xs text-brand-ink-600">
+    <label className="flex items-center gap-2 text-xs" style={{ color: "var(--earth-600)" }}>
       <span>Sort by</span>
       <select
-        className={sortSelectClass}
+        className="rounded-lg border-2 px-3 py-1.5 text-xs font-medium"
+        style={{
+          background: "white",
+          borderColor: "var(--earth-200)",
+          color: "var(--earth-700)"
+        }}
         value={desireSort}
         onChange={(event) => setDesireSort(event.target.value as SortOption)}
       >
@@ -352,7 +351,6 @@ export default function RoomStatus() {
     </label>
   );
 
-  
   const participantSection = (
     <section
       className="section-card space-y-4"
@@ -379,15 +377,22 @@ export default function RoomStatus() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)] lg:items-start">
           {participantSection}
           <div className="space-y-4">
-            {filterByMembershipId ? (
-              <div className="flex min-w-0 max-w-full items-center gap-2 rounded-full bg-brand-gold/10 px-3 py-1.5 text-sm text-brand-gold-dark">
+            {filterByMembershipId && (
+              <div
+                className="flex min-w-0 max-w-full items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
+                style={{
+                  background: "var(--gold-100)",
+                  border: "1.5px solid var(--gold-400)",
+                  color: "var(--gold-700)"
+                }}
+              >
                 <span className="min-w-0 truncate">
                   Filtering by: <strong className="truncate">{getMemberDisplayName(filterByMembershipId)}</strong>
                 </span>
                 <button
                   type="button"
                   onClick={() => setFilterByMembershipId(null)}
-                  className="shrink-0 rounded-full p-0.5 hover:bg-brand-gold/20"
+                  className="shrink-0 rounded-full p-1 transition-colors hover:bg-[var(--gold-200)]"
                   aria-label="Clear filter"
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -395,36 +400,43 @@ export default function RoomStatus() {
                   </svg>
                 </button>
               </div>
-            ) : null}
-            {offersEnabled && desiresEnabled ? (
-              <div className="-mx-1 flex gap-2 overflow-x-auto border-b border-brand-sand-200 px-1">
+            )}
+            {offersEnabled && desiresEnabled && (
+              <div
+                className="flex gap-1 rounded-lg p-1"
+                style={{ background: "var(--earth-100)" }}
+              >
                 <button
                   type="button"
                   onClick={() => setActiveTab("offers")}
-                  className={[
-                    "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+                  className={`flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all ${
                     activeTab === "offers"
-                      ? "border-b-2 border-brand-gold text-brand-gold-dark"
-                      : "text-brand-ink-600 hover:text-brand-ink-900",
-                  ].join(" ")}
+                      ? "bg-white shadow-sm"
+                      : "hover:bg-white/50"
+                  }`}
+                  style={{
+                    color: activeTab === "offers" ? "var(--green-700)" : "var(--earth-600)"
+                  }}
                 >
                   Offers ({sortedOffers.length})
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab("desires")}
-                  className={[
-                    "whitespace-nowrap px-4 py-2 text-sm font-medium transition-colors",
+                  className={`flex-1 rounded-md px-4 py-2.5 text-sm font-semibold transition-all ${
                     activeTab === "desires"
-                      ? "border-b-2 border-brand-gold text-brand-gold-dark"
-                      : "text-brand-ink-600 hover:text-brand-ink-900",
-                  ].join(" ")}
+                      ? "bg-white shadow-sm"
+                      : "hover:bg-white/50"
+                  }`}
+                  style={{
+                    color: activeTab === "desires" ? "var(--gold-700)" : "var(--earth-600)"
+                  }}
                 >
                   Desires ({sortedDesires.length})
                 </button>
               </div>
-            ) : null}
-            {offersEnabled && (activeTab === "offers" || !desiresEnabled) ? (
+            )}
+            {offersEnabled && (activeTab === "offers" || !desiresEnabled) && (
               <ItemList
                 title="Offers"
                 items={sortedOffers}
@@ -433,8 +445,8 @@ export default function RoomStatus() {
                 getAuthorName={getMemberDisplayName}
                 authorLabel="From"
               />
-            ) : null}
-            {desiresEnabled && (activeTab === "desires" || !offersEnabled) ? (
+            )}
+            {desiresEnabled && (activeTab === "desires" || !offersEnabled) && (
               <ItemList
                 title="Desires"
                 items={sortedDesires}
@@ -443,7 +455,7 @@ export default function RoomStatus() {
                 getAuthorName={getMemberDisplayName}
                 authorLabel="For"
               />
-            ) : null}
+            )}
           </div>
         </div>
       ) : (

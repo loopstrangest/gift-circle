@@ -1,17 +1,30 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Crimson_Pro, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 import { IdentityProvider } from "@/components/identity-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Elegant display font - classic serif without quirky letters
+const crimsonPro = Crimson_Pro({
+  variable: "--font-display",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Clean, modern body font
+const dmSans = DM_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+// Monospace for codes
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} bg-brand-sand-50 font-sans`}
+        className={`${crimsonPro.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-body antialiased`}
       >
         <IdentityProvider>{children}</IdentityProvider>
       </body>

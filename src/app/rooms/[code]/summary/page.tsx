@@ -195,7 +195,7 @@ export default function SummaryPage() {
     <div className="space-y-6">
       <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-4xl font-semibold text-brand-ink-900 text-center md:text-left flex-1">
+          <h1 className="font-display text-4xl font-semibold text-center md:text-left flex-1" style={{ color: "var(--earth-900)" }}>
             Summary
           </h1>
           {membershipId ? (
@@ -206,7 +206,7 @@ export default function SummaryPage() {
                   !hasAcceptedCommitment || pdfState.status === "loading"
                     ? "cursor-not-allowed opacity-50"
                     : ""
-                } ${!hasAcceptedCommitment || pdfState.status === "loading" ? "hover:text-brand-ink-900 hover:border-brand-ink-500" : ""}`}
+                }`}
                 onClick={handleDownloadPdf}
                 disabled={pdfState.status === "loading" || !hasAcceptedCommitment}
                 title={
@@ -220,7 +220,7 @@ export default function SummaryPage() {
                   : "Download my commitments"}
               </button>
               {pdfState.status === "success" ? (
-                <span className="text-xs text-brand-green">Download started.</span>
+                <span className="text-xs" style={{ color: "var(--green-600)" }}>Download started.</span>
               ) : null}
               {pdfState.status === "error" ? (
                 <span className="text-xs text-red-600">{pdfState.message}</span>
@@ -237,52 +237,64 @@ export default function SummaryPage() {
 
       {isSummaryRound ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-brand-sand-100 bg-white p-4 text-center">
-              <p className="text-3xl font-bold text-brand-ink-900">
+            <div className="card p-4 text-center">
+              <p className="font-display text-3xl font-bold" style={{ color: "var(--earth-900)" }}>
                 {summaryStats.totalCommitments}
               </p>
-              <p className="mt-1 text-sm text-brand-ink-600">Total Commitments</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>Total Commitments</p>
             </div>
 
-            <div className="rounded-lg border border-brand-sand-100 bg-white p-4 text-center">
-              <p className="text-3xl font-bold text-brand-ink-900">
+            <div className="card p-4 text-center">
+              <p className="font-display text-3xl font-bold" style={{ color: "var(--earth-900)" }}>
                 {summaryStats.avgCommitmentsPerPerson.toFixed(1)}
               </p>
-              <p className="mt-1 text-sm text-brand-ink-600">Avg per Person</p>
+              <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>Avg per Person</p>
             </div>
 
-            <div className="rounded-lg border border-brand-green/20 bg-brand-green/5 p-4 text-center">
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{
+                background: "var(--green-50)",
+                border: "2px solid var(--green-200)"
+              }}
+            >
               {summaryStats.topGiver ? (
                 <>
-                  <p className="text-lg font-bold text-brand-green-dark">
+                  <p className="text-lg font-bold" style={{ color: "var(--green-700)" }}>
                     {getMemberDisplayName(summaryStats.topGiver.membershipId)}
                   </p>
-                  <p className="mt-1 text-sm text-brand-ink-600">
+                  <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>
                     Top Giver ({summaryStats.topGiver.count} {summaryStats.topGiver.count === 1 ? "gift" : "gifts"})
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-lg font-bold text-brand-ink-400">—</p>
-                  <p className="mt-1 text-sm text-brand-ink-600">Top Giver</p>
+                  <p className="text-lg font-bold" style={{ color: "var(--earth-400)" }}>—</p>
+                  <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>Top Giver</p>
                 </>
               )}
             </div>
 
-            <div className="rounded-lg border border-brand-gold/20 bg-brand-gold/5 p-4 text-center">
+            <div
+              className="rounded-xl p-4 text-center"
+              style={{
+                background: "var(--gold-50)",
+                border: "2px solid var(--gold-200)"
+              }}
+            >
               {summaryStats.topReceiver ? (
                 <>
-                  <p className="text-lg font-bold text-brand-gold-dark">
+                  <p className="text-lg font-bold" style={{ color: "var(--gold-700)" }}>
                     {getMemberDisplayName(summaryStats.topReceiver.membershipId)}
                   </p>
-                  <p className="mt-1 text-sm text-brand-ink-600">
+                  <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>
                     Top Receiver ({summaryStats.topReceiver.count} {summaryStats.topReceiver.count === 1 ? "gift" : "gifts"})
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-lg font-bold text-brand-ink-400">—</p>
-                  <p className="mt-1 text-sm text-brand-ink-600">Top Receiver</p>
+                  <p className="text-lg font-bold" style={{ color: "var(--earth-400)" }}>—</p>
+                  <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>Top Receiver</p>
                 </>
               )}
             </div>
@@ -298,7 +310,7 @@ export default function SummaryPage() {
             <h2 id="shared-experiences-heading" className="section-heading">
               Shared Experiences
             </h2>
-            <p className="mt-1 text-sm text-brand-ink-600">
+            <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>
               What did you enjoy most about this Gift Circle?
             </p>
           </div>
@@ -306,19 +318,19 @@ export default function SummaryPage() {
             {allEnjoyments.map((entry) => (
               <li
                 key={entry.membershipId}
-                className={`rounded-lg border p-4 ${
-                  entry.isCurrentUser
-                    ? "border-brand-green/20 bg-brand-green/5"
-                    : "border-brand-sand-100 bg-white"
-                }`}
+                className="rounded-xl p-4"
+                style={{
+                  background: entry.isCurrentUser ? "var(--green-50)" : "white",
+                  border: entry.isCurrentUser ? "2px solid var(--green-200)" : "2px solid var(--earth-200)"
+                }}
               >
-                <p className="text-sm font-semibold text-brand-ink-900">
+                <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                   {entry.name}
                   {entry.isCurrentUser ? (
-                    <span className="ml-2 text-xs font-normal text-brand-ink-500">(You)</span>
+                    <span className="ml-2 text-xs font-normal" style={{ color: "var(--earth-500)" }}>(You)</span>
                   ) : null}
                 </p>
-                <p className="mt-2 text-sm text-brand-ink-700 whitespace-pre-line">
+                <p className="mt-2 text-sm whitespace-pre-line" style={{ color: "var(--earth-700)" }}>
                   {entry.enjoyment}
                 </p>
               </li>

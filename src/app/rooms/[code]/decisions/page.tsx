@@ -288,7 +288,7 @@ export default function DecisionsPage() {
   ) => {
     const { ownerName, direction } = options;
     if (claims.length === 0) {
-      return <p className="text-sm text-brand-ink-500">No requests for this entry.</p>;
+      return <p className="text-sm" style={{ color: "var(--earth-500)" }}>No requests for this entry.</p>;
     }
 
     return (
@@ -304,21 +304,21 @@ export default function DecisionsPage() {
           return (
             <li
               key={claim.id}
-              className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm"
+              className="card p-4"
             >
               <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-brand-ink-900">
+                    <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                       {connectionText}
                     </p>
                     {claim.note ? (
-                      <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
+                      <p className="mt-1 text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>
                         {claim.note}
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 rounded-full bg-brand-sand-100 px-3 py-0.5 text-xs font-semibold capitalize text-brand-ink-600">
+                  <span className="badge-neutral">
                     {STATUS_LABELS[claim.status] ?? claim.status}
                   </span>
                 </div>
@@ -356,17 +356,17 @@ export default function DecisionsPage() {
       <header className="section-card space-y-4" role="banner">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl space-y-3">
-            <h1 className="text-3xl font-semibold text-brand-ink-900">Decisions</h1>
-            <p className="text-sm text-brand-ink-600">
+            <h1 className="font-display text-3xl font-semibold" style={{ color: "var(--earth-900)" }}>Decisions</h1>
+            <p className="text-sm" style={{ color: "var(--earth-600)" }}>
               Accept or decline your incoming requests.
             </p>
           </div>
           <div className="flex w-full flex-col items-start gap-2 md:w-auto md:items-end">
             {isDecisionsRound ? (
-              <div className="rounded-md bg-brand-gold/10 px-3 py-2 text-xs font-medium text-brand-gold-dark">
+              <div className="badge-gold">
                 {pendingDecisionCount === 0
-                  ? "No remaining decisions."
-                  : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}.`}
+                  ? "No remaining decisions"
+                  : `${pendingDecisionCount} pending ${pendingDecisionCount === 1 ? "decision" : "decisions"}`}
               </div>
             ) : null}
             {membershipId ? (
@@ -391,7 +391,7 @@ export default function DecisionsPage() {
                     : "Download my commitments"}
                 </button>
                 {pdfState.status === "success" ? (
-                  <span className="text-xs text-brand-green">Download started.</span>
+                  <span className="text-xs" style={{ color: "var(--green-600)" }}>Download started.</span>
                 ) : null}
                 {pdfState.status === "error" ? (
                   <span className="text-xs text-red-600">{pdfState.message}</span>
@@ -406,7 +406,14 @@ export default function DecisionsPage() {
           </p>
         ) : null}
         {!membershipId ? (
-          <p className="rounded-md border border-brand-sand-200 bg-brand-sand-50 px-4 py-2 text-sm text-brand-ink-600">
+          <p
+            className="rounded-xl px-4 py-3 text-sm"
+            style={{
+              background: "var(--earth-100)",
+              border: "2px solid var(--earth-200)",
+              color: "var(--earth-600)"
+            }}
+          >
             Join the room to manage requests made on your offers and desires.
           </p>
         ) : null}
@@ -432,17 +439,23 @@ export default function DecisionsPage() {
             </h2>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3 rounded-lg border border-brand-green/20 bg-brand-green/5 p-4">
-              <h3 className="text-sm font-semibold text-brand-green-dark">Giving</h3>
+            <div
+              className="space-y-3 rounded-xl p-4"
+              style={{
+                background: "var(--green-50)",
+                border: "2px solid var(--green-200)"
+              }}
+            >
+              <h3 className="text-sm font-semibold" style={{ color: "var(--green-700)" }}>Giving</h3>
               {viewerGivingCommitments.length === 0 ? (
-                <p className="text-sm text-brand-ink-500">
+                <p className="text-sm" style={{ color: "var(--earth-500)" }}>
                   No accepted giving commitments yet.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {viewerGivingCommitments.map((entry) => (
-                    <li key={entry.claimId} className="text-sm text-brand-ink-700">
-                      <span className="font-semibold text-brand-ink-900">
+                    <li key={entry.claimId} className="text-sm" style={{ color: "var(--earth-700)" }}>
+                      <span className="font-semibold" style={{ color: "var(--earth-900)" }}>
                         {entry.itemTitle}
                       </span>{" "}
                       to {getMemberDisplayName(entry.counterpartMembershipId)}
@@ -451,17 +464,23 @@ export default function DecisionsPage() {
                 </ul>
               )}
             </div>
-            <div className="space-y-3 rounded-lg border border-brand-gold/20 bg-brand-gold/5 p-4">
-              <h3 className="text-sm font-semibold text-brand-gold-dark">Receiving</h3>
+            <div
+              className="space-y-3 rounded-xl p-4"
+              style={{
+                background: "var(--gold-50)",
+                border: "2px solid var(--gold-200)"
+              }}
+            >
+              <h3 className="text-sm font-semibold" style={{ color: "var(--gold-700)" }}>Receiving</h3>
               {viewerReceivingCommitments.length === 0 ? (
-                <p className="text-sm text-brand-ink-500">
+                <p className="text-sm" style={{ color: "var(--earth-500)" }}>
                   No accepted receiving commitments yet.
                 </p>
               ) : (
                 <ul className="space-y-2">
                   {viewerReceivingCommitments.map((entry) => (
-                    <li key={entry.claimId} className="text-sm text-brand-ink-700">
-                      <span className="font-semibold text-brand-ink-900">
+                    <li key={entry.claimId} className="text-sm" style={{ color: "var(--earth-700)" }}>
+                      <span className="font-semibold" style={{ color: "var(--earth-900)" }}>
                         {entry.itemTitle}
                       </span>{" "}
                       from {getMemberDisplayName(entry.counterpartMembershipId)}
@@ -490,21 +509,21 @@ export default function DecisionsPage() {
                 {offerTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
+                    className="card p-4 sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-brand-ink-900">
+                          <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                             {item.title}
                           </p>
                           {item.details ? (
-                            <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
+                            <p className="mt-1 text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>
                               {item.details}
                             </p>
                           ) : null}
                         </div>
-                        <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-600">
+                        <span className="badge-neutral capitalize">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
@@ -533,21 +552,21 @@ export default function DecisionsPage() {
                 {desireTargets.map(({ item, claims }) => (
                   <li
                     key={item.id}
-                    className="rounded-lg border border-brand-sand-100 bg-white p-4 shadow-sm sm:p-5"
+                    className="card p-4 sm:p-5"
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-brand-ink-900">
+                          <p className="text-sm font-semibold" style={{ color: "var(--earth-900)" }}>
                             {item.title}
                           </p>
                           {item.details ? (
-                            <p className="mt-1 text-sm text-brand-ink-600 whitespace-pre-line">
+                            <p className="mt-1 text-sm whitespace-pre-line" style={{ color: "var(--earth-600)" }}>
                               {item.details}
                             </p>
                           ) : null}
                         </div>
-                        <span className="shrink-0 rounded-full bg-brand-sand-100 px-2 py-0.5 text-xs font-medium capitalize text-brand-ink-600">
+                        <span className="badge-neutral capitalize">
                           {item.status.toLowerCase()}
                         </span>
                       </div>
@@ -573,21 +592,27 @@ export default function DecisionsPage() {
             <h2 id="enjoyment-heading" className="section-heading">
               Share Your Experience
             </h2>
-            <p className="mt-1 text-sm text-brand-ink-600">
+            <p className="mt-1 text-sm" style={{ color: "var(--earth-600)" }}>
               What did you enjoy most about this Gift Circle? Your response will be shared with other participants.
             </p>
           </div>
           {hasSubmittedEnjoyment ? (
-            <div className="rounded-lg border border-brand-green/20 bg-brand-green/5 p-4">
-              <p className="text-sm font-medium text-brand-green-dark">You shared:</p>
-              <p className="mt-2 text-sm text-brand-ink-700 whitespace-pre-line">
+            <div
+              className="rounded-xl p-4"
+              style={{
+                background: "var(--green-50)",
+                border: "2px solid var(--green-200)"
+              }}
+            >
+              <p className="text-sm font-medium" style={{ color: "var(--green-700)" }}>You shared:</p>
+              <p className="mt-2 text-sm whitespace-pre-line" style={{ color: "var(--earth-700)" }}>
                 {currentMember?.enjoyment}
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <textarea
-                className="w-full rounded-lg border border-brand-sand-200 bg-white px-4 py-3 text-sm text-brand-ink-900 placeholder:text-brand-ink-400 focus:border-brand-gold focus:outline-none focus:ring-1 focus:ring-brand-gold"
+                className="input-field"
                 rows={4}
                 placeholder="Share what you enjoyed about this experience..."
                 value={enjoymentDraft}

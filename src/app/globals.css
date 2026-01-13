@@ -5,154 +5,586 @@
 @layer base {
   :root {
     color-scheme: light;
+
+    /* Core brand colors */
+    --gold-50: #FFFBEB;
+    --gold-100: #FEF3C7;
+    --gold-200: #FDE68A;
+    --gold-300: #FCD34D;
+    --gold-400: #FBBF24;
+    --gold-500: #D4AF37;
+    --gold-600: #B8860B;
+    --gold-700: #92400E;
+
+    --green-50: #F0FDF4;
+    --green-100: #DCFCE7;
+    --green-200: #BBF7D0;
+    --green-300: #86EFAC;
+    --green-400: #4ADE80;
+    --green-500: #22C55E;
+    --green-600: #16A34A;
+    --green-700: #15803D;
+    --green-800: #166534;
+
+    --earth-50: #FAF8F5;
+    --earth-100: #F5F0E8;
+    --earth-200: #E8DFD0;
+    --earth-300: #D4C4A8;
+    --earth-400: #BFA67A;
+    --earth-500: #A68B5B;
+    --earth-600: #8B7355;
+    --earth-700: #6B5A47;
+    --earth-800: #4A3F35;
+    --earth-900: #2D2620;
   }
 
-  /* Custom scrollbar styling */
+  /* Refined scrollbar */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: rgba(245, 241, 232, 0.5);
-    border-radius: 10px;
+    background: var(--earth-100);
+    border-radius: 100px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #c9a227, #a88b1e);
-    border-radius: 10px;
-    border: 2px solid rgba(245, 241, 232, 0.5);
+    background: linear-gradient(180deg, var(--gold-500), var(--gold-600));
+    border-radius: 100px;
+    border: 2px solid var(--earth-100);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #a88b1e, #8a7318);
+    background: linear-gradient(180deg, var(--gold-600), var(--gold-700));
   }
 
-  /* Firefox scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #c9a227 rgba(245, 241, 232, 0.5);
+    scrollbar-color: var(--gold-500) var(--earth-100);
   }
 
   html,
   body {
-    @apply min-h-full text-brand-ink-900 antialiased bg-brand-sand-50;
+    @apply min-h-full antialiased;
+    color: var(--earth-900);
   }
 
   body {
-    @apply m-0 font-sans;
-    font-family:
-      var(--font-geist-sans),
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
-    background-image: radial-gradient(
-      circle at top left,
-      #fef9ed 0%,
-      #f5f8ef 45%,
-      #ecf3e6 100%
-    );
+    @apply font-body;
+    background: linear-gradient(180deg, var(--earth-50) 0%, var(--gold-50) 50%, var(--green-50) 100%);
     background-attachment: fixed;
   }
 
   a {
-    @apply text-brand-green-dark transition hover:text-brand-gold-dark;
+    @apply text-green-700 transition-all duration-200;
+  }
+
+  a:hover {
+    color: var(--gold-600);
+    text-decoration: underline;
   }
 
   ::selection {
-    @apply bg-brand-gold-light/70 text-brand-ink-900;
+    background: rgba(212, 175, 55, 0.3);
+    color: var(--earth-900);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
   }
 }
 
 @layer components {
+  /* ==================== LAYOUT ==================== */
   .layout-container {
-    @apply mx-auto w-full max-w-6xl px-4 pb-12 pt-6 sm:px-6 lg:px-10;
+    @apply relative mx-auto w-full max-w-5xl px-4 pb-16 pt-6 sm:px-6 lg:px-8;
   }
 
-  .app-hero {
-    background: radial-gradient(
-      circle at top,
-      rgba(243, 229, 171, 0.95),
-      rgba(231, 244, 219, 0.85)
-    );
-    border: 1px solid rgba(178, 151, 0, 0.25);
-    box-shadow: 0 40px 80px -45px rgba(98, 120, 69, 0.8);
+  /* ==================== HERO SECTION ==================== */
+  .hero-section {
+    @apply relative overflow-hidden rounded-3xl p-8 sm:p-12 lg:p-16;
+    background: linear-gradient(135deg, var(--gold-100) 0%, var(--green-100) 100%);
+    border: 2px solid var(--gold-300);
+    box-shadow:
+      0 20px 50px -15px rgba(212, 175, 55, 0.3),
+      0 10px 30px -10px rgba(0, 0, 0, 0.1),
+      inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .hero-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.15) 1px, transparent 0);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* ==================== CARDS ==================== */
+  .card {
+    @apply relative rounded-2xl border bg-white;
+    border-color: var(--earth-200);
+    box-shadow:
+      0 4px 20px -5px rgba(0, 0, 0, 0.08),
+      0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  }
+
+  .card-elevated {
+    @apply card;
+    box-shadow:
+      0 10px 40px -10px rgba(0, 0, 0, 0.12),
+      0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+  }
+
+  .card-elevated:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 16px 50px -10px rgba(0, 0, 0, 0.15),
+      0 6px 20px -4px rgba(0, 0, 0, 0.1);
   }
 
   .section-card {
-    @apply card p-6 sm:p-7 lg:p-8;
+    @apply card p-6 sm:p-8;
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--earth-50) 100%);
   }
 
   .section-heading {
-    @apply text-xl font-semibold text-brand-ink-900;
+    @apply font-display text-xl font-semibold;
+    color: var(--earth-900);
   }
 
-  .empty-state {
-    @apply mt-3 rounded-2xl border border-dashed border-brand-sand-200 bg-white/70 px-4 py-6 text-sm text-brand-ink-600;
+  /* ==================== ROOM HEADER ==================== */
+  .room-header {
+    @apply relative overflow-hidden rounded-2xl p-6 sm:p-8;
+    background: linear-gradient(135deg, var(--gold-100) 0%, var(--green-50) 50%, var(--earth-50) 100%);
+    border: 2px solid var(--gold-200);
+    box-shadow:
+      0 8px 30px -10px rgba(212, 175, 55, 0.25),
+      inset 0 2px 0 rgba(255, 255, 255, 0.9);
   }
 
-  .card {
-    @apply rounded-3xl border border-brand-sand-100/80 bg-white/90 shadow-card backdrop-blur;
+  .room-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.1) 1px, transparent 0);
+    background-size: 16px 16px;
+    pointer-events: none;
   }
 
-  .card-muted {
-    @apply rounded-3xl border border-brand-sand-100 bg-brand-sand-50/80 shadow-card-soft backdrop-blur;
+  /* ==================== NAVIGATION ==================== */
+  .nav-container {
+    @apply -mx-2 overflow-x-auto px-2 pb-1;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  .card-gold {
-    background: linear-gradient(135deg, #f3d88f, #dcb149);
-    @apply rounded-3xl border border-brand-gold-dark/30 shadow-card text-brand-ink-900;
+  .nav-container::-webkit-scrollbar {
+    display: none;
   }
 
-  .card-emerald {
-    background: linear-gradient(135deg, #9dd190, #4d8c44);
-    @apply rounded-3xl border border-brand-green-dark/30 shadow-card text-white;
+  .nav-pills {
+    @apply flex items-center gap-2;
+    min-width: max-content;
   }
 
+  .nav-pill {
+    @apply relative inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-200;
+    border: 2px solid transparent;
+  }
+
+  .nav-pill-inactive {
+    @apply nav-pill;
+    background: white;
+    border-color: var(--earth-200);
+    color: var(--earth-700);
+  }
+
+  .nav-pill-inactive:hover {
+    border-color: var(--gold-400);
+    color: var(--gold-700);
+    background: var(--gold-50);
+  }
+
+  .nav-pill-active {
+    @apply nav-pill;
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    color: white;
+    border-color: var(--green-700);
+    box-shadow: 0 4px 12px -4px rgba(22, 163, 74, 0.4);
+  }
+
+  .nav-pill-active:hover,
+  .nav-pill-active:focus {
+    background: linear-gradient(135deg, var(--green-700) 0%, var(--green-800) 100%);
+    color: white;
+    border-color: var(--green-800);
+  }
+
+  /* ==================== BUTTONS ==================== */
   .btn {
-    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-gold;
+    @apply relative inline-flex items-center justify-center rounded-full font-semibold transition-all duration-200;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
   }
 
+  /* Primary green button */
+  .btn-primary {
+    @apply btn px-6 py-3 text-sm;
+    background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+    color: white;
+    border: 2px solid var(--green-600);
+    box-shadow:
+      0 4px 14px -4px rgba(22, 163, 74, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    border-color: var(--green-700);
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 20px -4px rgba(22, 163, 74, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary:disabled {
+    @apply cursor-not-allowed opacity-50;
+    transform: none;
+  }
+
+  /* Gold button - for important actions like "Advance Round" */
   .btn-gold {
-    @apply btn bg-brand-gold text-brand-ink-900 hover:bg-brand-gold-dark disabled:cursor-not-allowed disabled:bg-brand-gold/50;
+    @apply btn px-6 py-3 text-sm;
+    background: linear-gradient(135deg, var(--gold-400) 0%, var(--gold-500) 100%);
+    color: var(--earth-900);
+    border: 2px solid var(--gold-500);
+    box-shadow:
+      0 4px 14px -4px rgba(212, 175, 55, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
-  .btn-emerald {
-    @apply btn bg-brand-green text-white hover:bg-brand-green-dark disabled:cursor-not-allowed disabled:bg-brand-green/50;
+  .btn-gold:hover {
+    background: linear-gradient(135deg, var(--gold-500) 0%, var(--gold-600) 100%);
+    border-color: var(--gold-600);
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 20px -4px rgba(212, 175, 55, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
   }
 
+  .btn-gold:active {
+    transform: translateY(0);
+  }
+
+  .btn-gold:disabled {
+    @apply cursor-not-allowed opacity-50;
+    transform: none;
+  }
+
+  /* Secondary/outline button */
   .btn-outline {
-    @apply btn border border-brand-ink-500 text-brand-ink-900 hover:border-brand-gold hover:text-brand-gold;
+    @apply btn px-6 py-3 text-sm;
+    background: white;
+    color: var(--earth-700);
+    border: 2px solid var(--earth-300);
   }
 
+  .btn-outline:hover {
+    border-color: var(--gold-400);
+    color: var(--gold-700);
+    background: var(--gold-50);
+  }
+
+  /* Emerald button variant */
+  .btn-emerald {
+    @apply btn-primary;
+  }
+
+  /* Danger button */
   .btn-danger {
-    @apply btn border border-brand-sand-300 bg-brand-sand-100 text-brand-ink-700 hover:border-brand-sand-400 hover:bg-brand-sand-200 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply btn px-6 py-3 text-sm;
+    background: white;
+    color: #DC2626;
+    border: 2px solid #FCA5A5;
   }
 
-  .pill {
-    @apply inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-ink-600;
+  .btn-danger:hover {
+    background: #FEF2F2;
+    border-color: #F87171;
   }
 
+  /* ==================== BADGES & PILLS ==================== */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+    border: 1.5px solid;
+  }
+
+  .badge-gold {
+    @apply badge;
+    background: var(--gold-100);
+    border-color: var(--gold-400);
+    color: var(--gold-700);
+  }
+
+  .badge-green {
+    @apply badge;
+    background: var(--green-100);
+    border-color: var(--green-400);
+    color: var(--green-700);
+  }
+
+  .badge-neutral {
+    @apply badge;
+    background: var(--earth-100);
+    border-color: var(--earth-300);
+    color: var(--earth-700);
+  }
+
+  .pill-gold {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider;
+    background: linear-gradient(135deg, var(--gold-200), var(--gold-300));
+    border: 1.5px solid var(--gold-400);
+    color: var(--gold-700);
+  }
+
+  .pill-green {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider;
+    background: linear-gradient(135deg, var(--green-200), var(--green-300));
+    border: 1.5px solid var(--green-400);
+    color: var(--green-700);
+  }
+
+  /* ==================== FORM ELEMENTS ==================== */
   .form-label {
-    @apply text-sm font-medium text-brand-ink-700;
+    @apply block text-sm font-semibold;
+    color: var(--earth-700);
   }
 
   .input-field {
-    @apply rounded-2xl border border-brand-sand-200 bg-white/80 px-4 py-2 text-base text-brand-ink-900 shadow-inner shadow-brand-sand-100/40 transition focus:border-brand-green focus:ring-2 focus:ring-brand-green/30 focus:outline-none;
+    @apply w-full rounded-xl px-4 py-3 text-base transition-all duration-200;
+    background: white;
+    border: 2px solid var(--earth-200);
+    color: var(--earth-900);
   }
 
-  .badge {
-    @apply inline-flex items-center rounded-full border border-brand-sand-200 bg-brand-sand-50 px-2 py-0.5 text-xs font-semibold text-brand-ink-700;
+  .input-field::placeholder {
+    color: var(--earth-400);
   }
 
+  .input-field:hover {
+    border-color: var(--earth-300);
+  }
+
+  .input-field:focus {
+    @apply outline-none;
+    border-color: var(--green-500);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  }
+
+  /* ==================== MEMBER LIST ==================== */
+  .member-card {
+    @apply relative rounded-xl p-4 transition-all duration-200;
+    background: white;
+    border: 2px solid var(--earth-200);
+  }
+
+  .member-card:hover {
+    border-color: var(--gold-300);
+    background: var(--gold-50);
+  }
+
+  .member-card[data-filtered="true"] {
+    border-color: var(--gold-400);
+    background: var(--gold-50);
+    box-shadow: 0 0 0 2px var(--gold-200);
+  }
+
+  .member-card-inactive {
+    @apply member-card opacity-60;
+  }
+
+  /* ==================== TAB BUTTONS ==================== */
+  .tab-button {
+    @apply relative px-4 py-2.5 text-sm font-semibold transition-all duration-200;
+    color: var(--earth-600);
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab-button:hover {
+    color: var(--earth-900);
+  }
+
+  .tab-button-active {
+    @apply tab-button;
+    color: var(--gold-700);
+    border-bottom-color: var(--gold-500);
+  }
+
+  /* ==================== EMPTY STATE ==================== */
+  .empty-state {
+    @apply rounded-xl p-6 text-center text-sm;
+    background: var(--earth-50);
+    border: 2px dashed var(--earth-200);
+    color: var(--earth-500);
+  }
+
+  /* ==================== INFO BLOCKS ==================== */
+  .info-block {
+    @apply space-y-3;
+  }
+
+  .info-block-header {
+    @apply flex items-center gap-3;
+  }
+
+  .info-block-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl;
+    background: linear-gradient(135deg, var(--gold-200), var(--gold-300));
+    border: 1.5px solid var(--gold-400);
+    color: var(--gold-700);
+  }
+
+  .info-block-title {
+    @apply font-display text-lg font-semibold;
+    color: var(--earth-900);
+  }
+
+  /* ==================== FORMAT LIST ==================== */
+  .format-list {
+    @apply space-y-2;
+  }
+
+  .format-list-item {
+    @apply flex items-start gap-3 rounded-xl p-3 transition-all duration-200;
+    background: var(--earth-50);
+    border: 1px solid var(--earth-100);
+  }
+
+  .format-list-item:hover {
+    background: var(--earth-100);
+    transform: translateX(4px);
+  }
+
+  .format-list-number {
+    @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold;
+    background: linear-gradient(135deg, var(--green-500), var(--green-600));
+    color: white;
+  }
+
+  /* ==================== ACTION CARDS ==================== */
+  .action-card {
+    @apply relative flex flex-col items-center gap-4 rounded-2xl p-8 transition-all duration-300 cursor-pointer;
+    background: white;
+    border: 2px solid var(--earth-200);
+  }
+
+  .action-card:hover {
+    border-color: var(--gold-400);
+    background: var(--gold-50);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px -10px rgba(212, 175, 55, 0.3);
+  }
+
+  .action-card[data-selected="true"] {
+    border-color: var(--green-500);
+    background: var(--green-50);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  }
+
+  .action-card-icon {
+    @apply flex h-16 w-16 items-center justify-center rounded-2xl;
+    background: linear-gradient(135deg, var(--gold-200), var(--gold-300));
+    border: 2px solid var(--gold-400);
+    transition: all 0.3s ease;
+  }
+
+  .action-card:hover .action-card-icon {
+    transform: scale(1.05);
+  }
+
+  .action-card[data-selected="true"] .action-card-icon {
+    background: linear-gradient(135deg, var(--green-200), var(--green-300));
+    border-color: var(--green-400);
+  }
+
+  /* ==================== ANIMATIONS ==================== */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+
+  .animate-float {
+    animation: float 5s ease-in-out infinite;
+  }
+
+  .animate-stagger-1 { animation-delay: 0.1s; }
+  .animate-stagger-2 { animation-delay: 0.2s; }
+  .animate-stagger-3 { animation-delay: 0.3s; }
+  .animate-stagger-4 { animation-delay: 0.4s; }
+  .animate-stagger-5 { animation-delay: 0.5s; }
+
+  /* ==================== DECORATIVE ==================== */
+  .decorative-circle {
+    @apply absolute rounded-full;
+    background: radial-gradient(circle, var(--gold-300), transparent 70%);
+    filter: blur(30px);
+    opacity: 0.4;
+  }
+
+  /* Legacy class support */
   .surface-grid {
-    background-image: radial-gradient(
-      circle at 1px 1px,
-      rgba(97, 154, 70, 0.08) 1px,
-      transparent 0
-    );
-    background-size: 18px 18px;
+    background-image: radial-gradient(circle at 2px 2px, rgba(212, 175, 55, 0.1) 1px, transparent 0);
+    background-size: 16px 16px;
+  }
+
+  .app-hero {
+    @apply room-header;
+  }
+
+  .card-muted {
+    @apply card;
+    background: var(--earth-50);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
