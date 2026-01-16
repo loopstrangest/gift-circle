@@ -429,6 +429,20 @@ export async function collectMemberCommitments(
   return commitments;
 }
 
+// Greyscale color palette
+const COLORS = {
+  black: "#000000",
+  gray900: "#1a1a1a",
+  gray700: "#404040",
+  gray600: "#525252",
+  gray500: "#6b6b6b",
+  gray400: "#a3a3a3",
+  gray300: "#d4d4d4",
+  gray200: "#e5e5e5",
+  gray100: "#f5f5f5",
+  white: "#ffffff",
+};
+
 export async function renderMemberSummaryPdf({
   member,
   commitments,
@@ -440,7 +454,7 @@ export async function renderMemberSummaryPdf({
 }): Promise<Buffer> {
   await ensureStandardFontsAvailable();
 
-  const doc = new PDFDocument({ margin: 48, size: "LETTER" });
+  const doc = new PDFDocument({ margin: 54, size: "LETTER" });
   const chunks: Buffer[] = [];
 
   doc.on("data", (chunk) => {
@@ -452,78 +466,172 @@ export async function renderMemberSummaryPdf({
   });
 
   const memberName = formatMemberDisplayName(member);
+  const pageWidth = doc.page.width;
+  const contentWidth = pageWidth - 108;
+
+  // === HEADER SECTION ===
+  doc
+    .rect(0, 0, pageWidth, 110)
+    .fill(COLORS.gray100);
 
   doc
     .font("Helvetica-Bold")
-    .fontSize(20)
-    .text("Gift Circle Commitments", { align: "center" })
-    .moveDown(0.5);
+    .fontSize(24)
+    .fillColor(COLORS.black)
+    .text("Gift Circle", 54, 36, { align: "center", width: contentWidth });
 
   doc
     .font("Helvetica")
     .fontSize(12)
-    .text(formatDate(generatedAt), { align: "center" })
-    .text(`Participant: ${memberName}`, { align: "center" })
-    .moveDown(1.25);
+    .fillColor(COLORS.gray600)
+    .text("Commitment Summary", 54, 66, { align: "center", width: contentWidth });
 
+  doc.y = 124;
+
+  // === PARTICIPANT INFO CARD ===
+  const infoCardY = doc.y;
+  const infoCardHeight = 50;
+
+  doc
+    .roundedRect(54, infoCardY, contentWidth, infoCardHeight, 6)
+    .fill(COLORS.gray200);
+
+  doc
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .fillColor(COLORS.black)
+    .text(memberName, 54, infoCardY + 12, { align: "center", width: contentWidth });
+
+  doc
+    .font("Helvetica")
+    .fontSize(10)
+    .fillColor(COLORS.gray600)
+    .text(formatDate(generatedAt), 54, infoCardY + 30, { align: "center", width: contentWidth });
+
+  doc.y = infoCardY + infoCardHeight + 20;
+
+  // === COMMITMENTS SECTIONS ===
   if (commitments.giving.length === 0 && commitments.receiving.length === 0) {
+    const emptyY = doc.y;
+    doc
+      .roundedRect(54, emptyY, contentWidth, 60, 8)
+      .fill(COLORS.gray100);
+
     doc
       .font("Helvetica")
       .fontSize(12)
+      .fillColor(COLORS.gray600)
       .text(
-        "No accepted commitments are recorded for this participant during the Decisions round.",
-        { align: "left" }
+        "No accepted commitments are recorded for this participant.",
+        54,
+        emptyY + 22,
+        { align: "center", width: contentWidth }
       );
   } else {
+    const cardIndent = 24; // Indent for cards under section headers
+
     const writeSection = (
       title: string,
       items: MemberCommitmentEntry[],
-      counterpartPrefix: "To" | "From"
+      counterpartPrefix: "To" | "From",
+      cardBgColor: string
     ) => {
-      doc.font("Helvetica-Bold").fontSize(16).text(title);
-      doc.moveDown(0.5);
+      // Section header (no accent bar)
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(14)
+        .fillColor(COLORS.black)
+        .text(title, 54);
+
+      doc.moveDown(0.4);
 
       if (items.length === 0) {
-        doc.font("Helvetica").fontSize(11).text("No accepted commitments recorded.");
-        doc.moveDown(0.75);
+        doc
+          .font("Helvetica")
+          .fontSize(10)
+          .fillColor(COLORS.gray500)
+          .text("None", 54 + cardIndent);
+        doc.moveDown(1);
         return;
       }
 
       items.forEach((entry) => {
+        // Calculate card height
+        let estimatedHeight = 44;
+        if (entry.itemDetails) estimatedHeight += 16;
+        if (entry.note) estimatedHeight += 16;
+
+        // Page break check
+        if (doc.y + estimatedHeight > doc.page.height - 80) {
+          doc.addPage();
+          doc.y = 54;
+        }
+
+        const cardY = doc.y;
+        const cardX = 54 + cardIndent;
+        const cardWidth = contentWidth - cardIndent;
+
+        // Card background
+        doc
+          .roundedRect(cardX, cardY, cardWidth, estimatedHeight, 6)
+          .fill(cardBgColor);
+
+        let textY = cardY + 10;
+        const textX = cardX + 12;
+
+        // Counterpart
+        doc
+          .font("Helvetica")
+          .fontSize(9)
+          .fillColor(COLORS.gray600)
+          .text(`${counterpartPrefix}:`, textX, textY, { continued: true })
+          .font("Helvetica-Bold")
+          .fillColor(COLORS.gray700)
+          .text(` ${entry.counterpartName}`);
+
+        textY += 14;
+
+        // Item title
         doc
           .font("Helvetica-Bold")
-          .fontSize(12)
-          .text(`${counterpartPrefix}: ${entry.counterpartName}`);
+          .fontSize(11)
+          .fillColor(COLORS.black)
+          .text(entry.itemTitle, textX, textY, { width: cardWidth - 24 });
 
-        doc.font("Helvetica-Bold").fontSize(12).text(entry.itemTitle);
+        textY += 14;
 
+        // Details
         if (entry.itemDetails) {
           doc
             .font("Helvetica")
-            .fontSize(11)
-            .fillColor("#4b5563")
-            .text(entry.itemDetails);
-          doc.fillColor("black");
+            .fontSize(9)
+            .fillColor(COLORS.gray600)
+            .text(entry.itemDetails, textX, textY, { width: cardWidth - 24 });
+          textY += 14;
         }
 
+        // Note
         if (entry.note) {
           doc
-            .font("Helvetica")
-            .fontSize(11)
-            .fillColor("#4b5563")
-            .text(`Note: ${entry.note}`);
-          doc.fillColor("black");
+            .font("Helvetica-Oblique")
+            .fontSize(9)
+            .fillColor(COLORS.gray500)
+            .text(`"${entry.note}"`, textX, textY, { width: cardWidth - 24 });
         }
 
-        doc.moveDown(0.75);
+        doc.y = cardY + estimatedHeight + 8;
       });
+
+      doc.moveDown(0.3);
     };
 
-    writeSection("Giving Commitments", commitments.giving, "To");
+    // Giving: light background
+    writeSection("Giving", commitments.giving, "To", COLORS.gray100);
 
-    doc.moveDown(0.5);
+    doc.moveDown(0.3);
 
-    writeSection("Receiving Commitments", commitments.receiving, "From");
+    // Receiving: slightly darker background
+    writeSection("Receiving", commitments.receiving, "From", COLORS.gray200);
   }
 
   doc.end();
