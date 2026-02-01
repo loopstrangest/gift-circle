@@ -27,14 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const getBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return "https://giftcircles.serviceguild.fun";
-};
-
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
   title: "Gift Circle",
   description:
     "An app for facilitating or participating in Gift Circles—cultivating generosity and abundance in community!",
@@ -43,21 +36,12 @@ export const metadata: Metadata = {
     description:
       "An app for facilitating or participating in Gift Circles—cultivating generosity and abundance in community!",
     type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Gift Circle",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Gift Circle",
     description:
       "An app for facilitating or participating in Gift Circles—cultivating generosity and abundance in community!",
-    images: ["/og-image.png"],
   },
 };
 
